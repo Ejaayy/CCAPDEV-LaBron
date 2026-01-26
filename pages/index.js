@@ -40,7 +40,7 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="container mt-5 mb-5 pb-5">
+      <section className="container mt-5 pb-5" style={{ marginBottom: '150px' }}>
         <div className="row">
           <div className="col-lg-7">
             <h1 className={`${styles['hero-title']} mb-4`} class="testing">
@@ -54,11 +54,14 @@ export default function Home() {
               <button className={`${styles['btn-outline-custom']}`}>EDIT BOOKING</button>
             </div>
           </div>
+      <div className={`${styles['custom-blur']}`}>
+
+        </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="container pb-5 mb-5">
+      <section className="container pb-5 mb-6">
         <div className="row g-4">
 
           <div className="col-md-4">

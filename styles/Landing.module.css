@@ -31,6 +31,14 @@ body {
     background: rgba(30, 64, 175, 0.15); /* Darker Blue Glow */
 }
 
+.custom-blur{
+    width: 469px;
+    height: 469px;
+    border-radius: 469px;
+    background: rgba(70, 105, 219, 0.58);
+    filter: blur(100px);
+}
+
 /* Navbar Links */
 .nav-link {
     color: #cfcfcf !important;
@@ -49,9 +57,13 @@ body {
 
 /* Hero Typography */
 .hero-title {
-    font-size: 4rem;
+    color: #FFF;
+    text-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+
+    font-size: 96px;
+    font-style: normal;
     font-weight: 700;
-    line-height: 1.1;
+    line-height: 103%; 
 }
 @media (max-width: 768px) {
     .hero-title { font-size: 3rem; }
@@ -76,6 +88,10 @@ body {
     padding: 12px 30px;
     font-weight: 600;
     border-radius: 8px;
+
+    border-radius: 17px;
+    border: 1px solid #10A7FE;
+    box-shadow: 0 4px 4px 0 rgba(65, 51, 222, 0.25);
 }
 .btn-outline-custom:hover {
     border-color: #60A5FA;
