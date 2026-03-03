@@ -1,5 +1,5 @@
-const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
+const path = require("path");
 const express = require("express");
 
 const connectDB = require("./model/db");
@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // View engine
-app.set("view engine", "ejs");
+app.set("view engine", "hbs");
 app.set("views", path.join(__dirname, "view"));
 
 connectDB().then(() => {
