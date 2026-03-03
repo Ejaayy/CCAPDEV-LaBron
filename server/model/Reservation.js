@@ -1,5 +1,29 @@
 const mongoose = require("mongoose");
 
+const reservedSlotSchema = new mongoose.Schema(
+    {
+        lab: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: "Lab", 
+            required: true 
+        },
+        seat: { 
+            type: String, 
+            required: true 
+        },
+
+        startTime: { 
+            type: Date, 
+            required: true 
+        },
+        endTime: { 
+            type: Date, 
+            required: true 
+        },
+    },
+    { _id: false }
+);
+
 const reservationSchema = new mongoose.Schema(
     {
         reservedBy: {
@@ -13,10 +37,10 @@ const reservationSchema = new mongoose.Schema(
             required: true  
         },
 
-        slots: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Slot",
-        }],
+        slots: {
+            type: [reservedSlotSchema],
+            required: true
+        },
 
         isAnonymous: {
             type: Boolean,

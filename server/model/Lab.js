@@ -19,7 +19,7 @@ const labSchema = new mongoose.Schema(
             type: [String], 
             required: true,
         }                           // ["A1", "A2", "B1", "B2", ...]
-    },
+    },  
     {timestamps: true }
 );
 
