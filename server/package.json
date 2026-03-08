@@ -8,9 +8,11 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "bootstrap": "^5.3.8",
     "dotenv": "^16.6.1",
     "ejs": "^3.1.9",
     "express": "^4.22.1",
+    "express-handlebars": "^8.0.3",
     "hbs": "^4.2.0",
     "mongoose": "^8.23.0"
   }

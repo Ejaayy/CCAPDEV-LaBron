@@ -1,0 +1,338 @@
+
+body {
+    background-color: #0F111A; 
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.glow-bg {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: -1;
+}
+.glow-1 {
+    top: -100px;
+    left: -100px;
+    width: 600px;
+    height: 600px;
+    background: rgba(37, 99, 235, 0.15);
+}
+.glow-2 {
+    bottom: 0;
+    right: 0;
+    width: 500px;
+    height: 500px;
+    background: rgba(30, 64, 175, 0.15);
+}
+
+.custom-blur{
+    width: 469px;
+    height: 469px;
+    border-radius: 469px;
+    background: rgba(70, 105, 219, 0.58);
+    filter: blur(100px);
+}
+
+
+/* Hero Typography */
+.hero-title {
+    color: #FFF;
+    text-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+
+    font-size: 96px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 103%; 
+}
+@media (max-width: 768px) {
+    .hero-title { font-size: 3rem; }
+}
+
+/* Buttons */
+.btn-primary-custom {
+    background-color: #2563EB;
+    color:white;
+    border: none;
+    padding: 12px 30px;
+    font-weight: 600;
+    border-radius: 17px;
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+}
+.btn-primary-custom:hover {
+    background-color: #1d4ed8;
+}
+.btn-outline-custom {
+    background-color: transparent;
+    color: white;
+    padding: 12px 30px;
+    font-weight: 600;
+
+    border-radius: 17px;
+    border: 1px solid #10A7FE;
+    box-shadow: 0 4px 4px 0 rgba(65, 51, 222, 0.25);
+}
+.btn-outline-custom:hover {
+    border-color: #60A5FA;
+    background-color: #0c205b;
+    color: white;
+}
+
+.glass-card {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 2rem;
+    height: 100%;
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+.glass-card:hover {
+    transform: translateY(-5px);
+    background: rgba(30, 41, 59, 0.6);
+}
+
+.img-placeholder {
+    height: 282px;
+    margin-bottom: 1.5rem;
+}
+
+.sectionHeader {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.sectionTitle {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 1rem;
+    background: linear-gradient(90deg, #0BBFED, #2075FD);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sectionDivider {
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #0BBFED, #2075FD);
+    margin: 0 auto 1rem;
+    border-radius: 2px;
+}
+
+.sectionSubtitle {
+    color: #94a3b8;
+    font-size: 1.1rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.aboutSection {
+    padding: 80px 0;
+    position: relative;
+}
+
+.aboutContent {
+    padding-right: 2rem;
+}
+
+.aboutHeading {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+}
+
+.aboutText {
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.aboutStats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.statItem {
+    text-align: center;
+}
+
+.statNumber {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #0BBFED, #2075FD);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.statLabel {
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.aboutImageWrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.aboutImageGlow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: rgba(32, 117, 253, 0.3);
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 0;
+}
+
+.aboutImage {
+    position: relative;
+    z-index: 1;
+    max-width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* ========== Contact Section ========== */
+.contactSection {
+    background: linear-gradient(180deg, rgba(15, 17, 26, 0) 0%, rgba(30, 41, 59, 0.3) 50%, rgba(15, 17, 26, 0) 100%);
+    padding: 80px 0;
+}
+
+.contactInfo {
+    height: 100%;
+}
+
+.contactInfoTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.contactInfoText {
+    color: #94a3b8;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+}
+
+.contactDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.contactItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+
+.contactItem strong {
+    color: #ffffff;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.contactItem p {
+    color: #94a3b8;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.contactFormCard {
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 2.5rem;
+}
+
+.contactForm {
+    width: 100%;
+}
+
+.formLabel {
+    display: block;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.formInput,
+.formTextarea {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.formInput::placeholder,
+.formTextarea::placeholder {
+    color: #64748b;
+}
+
+.formInput:focus,
+.formTextarea:focus {
+    outline: none;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.formTextarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+@media (max-width: 991px) {
+    .aboutContent {
+        padding-right: 0;
+        margin-bottom: 2rem;
+    }
+    
+    .aboutStats {
+        justify-content: center;
+    }
+    
+    .contactFormCard {
+        margin-top: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .sectionTitle {
+        font-size: 2rem;
+    }
+    
+    .aboutHeading {
+        font-size: 1.5rem;
+    }
+    
+    .aboutStats {
+        gap: 1.5rem;
+    }
+    
+    .statNumber {
+        font-size: 1.5rem;
+    }
+}

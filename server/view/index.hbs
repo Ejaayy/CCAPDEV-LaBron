@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabKoTo | DLSU Lab Reservations</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/css/landing.css">
+</head>
+<body>
+
+    <div class="glow-bg glow-1"></div>
+    <div class="glow-bg glow-2"></div>
+
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="/">LabKoTo</a>
+        </div>
+    </nav>
+
+    <section class="container mt-5 pb-5" style="margin-bottom: 150px;">
+      <div class="row">
+        <div class="col-lg-7">
+          <h1 class="hero-title">
+            Book Your <br /> Seat in <br /> Advance.
+          </h1>
+          <p class="lead text-secondary mb-5">
+            The most accessible Laboratories in DLSU
+          </p>
+          <div class="d-flex gap-3">
+            <a href="/auth/login" class="btn-primary-custom text-decoration-none">BOOK SEATS</a>
+            <a href="/auth/login" class="btn-outline-custom text-decoration-none">EDIT BOOKING</a>
+          </div>
+        </div>
+        <div class="custom-blur"></div>
+      </div>
+    </section>
+
+    <section class="container pb-5 mb-6">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="glass-card d-flex flex-column align-items-center text-center">
+            <img class="img-placeholder" src="img/clock.png" alt="Clock"/>
+            <h3 class="h4 fw-bold mb-2">Real-time availability</h3>
+            <p class="text-secondary small">Check seat availability through the website</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="glass-card d-flex flex-column align-items-center text-center">
+            <img class="img-placeholder" src="img/room.png" alt="Room"/>
+            <h3 class="h4 fw-bold mb-2">Adjustable Room layouts</h3>
+            <p class="text-secondary small">Adjust the room layout as administrator</p>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="glass-card d-flex flex-column align-items-center text-center">
+            <img class="img-placeholder" src="img/mail.png" alt="Mail"/>
+            <h3 class="h4 fw-bold mb-2">Email Notifications</h3>
+            <p class="text-secondary small">Get notified about your seat reservations</p>
+          </div>
+      </div>
+    </section>
+
+    <section id="about" class="container py-5 aboutSection">
+      <div class="sectionHeader">
+        <h2 class="sectionTitle">About Us</h2>
+        <div class="sectionDivider"></div>
+        <p class="sectionSubtitle">Learn more about our mission and team</p>
+      </div>
+      <div class="row align-items-center g-5 mt-4">
+        <div class="col-lg-6">
+          <div class="aboutContent">
+            <h3 class="aboutHeading">Simplifying Lab Reservations at DLSU</h3>
+
+            <p class="aboutText">
+              LabKoTo is designed to make reserving seats in DLSU laboratories fast, easy, and accessible.
+              Our platform allows students to check real-time availability, manage reservations, and get notified instantly.
+            </p>
+
+            <p class="aboutText">
+              Our mission is to improve productivity and ensure fair access to laboratory resources for all students.
+                We believe technology should make campus life easier, not harder.
+            </p>
+            <div class="aboutStats">
+              <div class="statItem">
+                <span class="statNumber">500+</span>
+                <span class="statLabel">Daily Users</span>
+              </div>
+              <div class="statItem">
+                <span class="statNumber">20+</span>
+                <span class="statLabel">Lab Rooms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="aboutImageWrapper">
+              <div class="aboutImageGlow"></div>
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="py-5 contactSection">
+        <div class="container">
+          <div class="sectionHeader">
+            <h2 class="sectionTitle">Contact Us</h2>
+            <div class="sectionDivider"></div>
+            <p class="sectionSubtitle">Have questions? We&apos;d love to hear from you</p>
+          </div>
+          <div class="row g-5 mt-4">
+            <div class="col-lg-5">
+              <div class="contactInfo">
+                <h3 class="contactInfoTitle">Get in Touch</h3>
+                <p class="contactInfoText">
+                  Feel free to reach out with any questions, suggestions, or feedback. Our team is here to help!
+                </p>
+                <div class="contactDetails">
+                  <div class="contactItem">
+                    
+                    <div>
+                      <strong>Address</strong>
+                      <p>De La Salle University, Manila</p>
+                    </div>
+                  </div>
+                  <div class="contactItem">
+                   
+                    <div>
+                      <strong>Email</strong>
+                      <p>labkoto@dlsu.edu.ph</p>
+                    </div>
+                  </div>
+                  <div class="contactItem">
+                   
+                    <div>
+                      <strong>Phone</strong>
+                      <p>(02) 8524-4611</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-7">
+              <div class="contactFormCard">
+                <form class="contactForm">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="formLabel">Your Name</label>
+                      <input type="text" placeholder="John Doe" class="formInput"/>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="formLabel">Your Email</label>
+                      <input type="email" placeholder="john@dlsu.edu.ph" class="formInput"/>
+                    </div>
+                    <div class="col-12">
+                      <label class="formLabel">Subject</label>
+                      <input type="text" placeholder="How can we help?" class="formInput"/>
+                    </div>
+                    <div class="col-12">
+                      <label class="formLabel">Message</label>
+                      <textarea placeholder="Write your message here..." class="formTextarea" rows="5"></textarea>
+                    </div>
+                    <div class="col-12">
+                      <button type="submit" class="btn-primary-custom">
+                        Send Message
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    <footer class="py-4 text-center">
+      <p class="text-secondary">&copy; 2026 LabKoTo - De La Salle University</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
