@@ -10,22 +10,23 @@ const DATES = [
   { day: 'Sat', date: '14 Feb', labs: 10 },
 ];
 
-export default function DateSelector({ selectedIndex = 3 }) {
+export default function DateSelector({ dates, selectedDate, onDateSelect }) {
   return (
     <div className={styles.dateSelectorContainer}>
       <button className={styles.navArrow}>&lt;</button>
       
       <div className={styles.dateGrid}>
-        {DATES.map((item, index) => {
-          const isSelected = index === selectedIndex;
-          const isAvailable = item.labs > 0;
+        {dates.map((item, index) => {
+          const isSelected = item.isoDate === selectedDate;
+          const isAvailable = item.isAvailable;
 
           return (
             <div 
-              key={index} 
+              key={item.isoDate} 
               className={`${styles.dateCard} ${isSelected ? styles.activeDate : ''}`}
+              onClick={()=> isAvailable && onDateSelect(item.isoDate)}
             >
-              <span className={styles.dateLabel}>{item.day} {item.date}</span>
+              <span className={styles.dateLabel}>{item.displayDay} {item.displayDate}</span>
               <span className={styles.labCount}>
                 {isAvailable ? `${item.labs} Labs Available` : 'Not Available'}
               </span>

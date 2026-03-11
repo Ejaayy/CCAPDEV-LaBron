@@ -13,6 +13,30 @@ export default function ReservePage(){
     const [reserveAnonymously, setReserveAnonymously] = useState(false);
     const totalSteps = 3;
 
+    // Helper function to calculate display for next 7 days
+    const getNextSevenDays = () => {
+    const days = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+
+        days.push({
+        displayDay: dayNames[d.getDay()],
+        displayDate: `${d.getDate().toString().padStart(2, '0')} ${monthNames[d.getMonth()]}`,
+        isoDate: d.toISOString().split('T')[0], // example format:  "2026-03-11"
+        isAvailable: true,
+        labs: 4
+        });
+    }
+    return days;
+    };
+
+    const [queryDates] = useState(getNextSevenDays()); 
+    const [selectedDate, setSelectedDate] = useState(queryDates[0].isoDate);
+
     return(
         <>
         
@@ -30,7 +54,7 @@ export default function ReservePage(){
                                 
                                 <div>
                                 <h1>Select your Laboratory booking date</h1>
-                                <DateSelector/>
+                                <DateSelector dates={queryDates} selectedDate={selectedDate} onDateSelect={(newDate)=>setSelectedDate(newDate)}/>
                                 <LabSlotSelector/>
                                 </div>
                                 )}
