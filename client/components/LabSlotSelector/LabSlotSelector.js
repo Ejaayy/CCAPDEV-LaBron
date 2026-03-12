@@ -1,4 +1,4 @@
-import styles from './SlotSelector.module.css';
+import styles from './LabSlotSelector.module.css';
 import { FaMicroscope, FaChevronDown, FaSearch } from 'react-icons/fa';
 import { useState } from 'react';
 
@@ -10,7 +10,7 @@ const LABS = [
   { id: '501', seats: 0, status: 'Full' },
 ];
 
-export default function LabSlotSelector() {
+export default function LabSlotSelector({onSelect, selectedLabId}) {
   const [searchQuery, setSearchQuery] = useState('');
   
   const startTime = "07:30 AM";
@@ -43,7 +43,7 @@ export default function LabSlotSelector() {
         </div>
       ) : (
         filteredLabs.map((lab) => (
-          <div key={lab.id} className={styles.labRow}>
+          <div key={lab.id} className={`${styles.labRow} ${selectedLabId === lab.id ? styles.selectedRow : ''}`} onClick={() => onSelect(lab)}>
             {/* Lab Info Column */}
             <div className={styles.labInfo}>
               <div className={styles.labName}>
@@ -67,7 +67,6 @@ export default function LabSlotSelector() {
                   {lab.seats} seats left at this time
                 </span>
               </div>
-              <FaChevronDown className={styles.expandIcon} />
             </div>
           </div>
         ))

@@ -2,7 +2,7 @@ import ReserveStyles from '@/styles/ReservePage.module.css'
 import HomeNavbar from '@/components/layout/HomeNavbar/HomeNavbar';
 import BookingStepper from '@/components/Stepper/Stepper'
 import DateSelector from '@/components/DateSelector/DateSelector';
-import LabSlotSelector from '@/components/SlotSelector/SlotSelector';
+import LabSlotSelector from '@/components/LabSlotSelector/LabSlotSelector';
 import { useState } from 'react';
 import SeatSelector from '@/components/SeatSelector/SeatSelector';
 
@@ -10,6 +10,7 @@ export default function ReservePage(){
 
 
     const [currentStep, setCurrentStep] = useState(1);
+    const [selectedLabSlot, setSelectedLabSlot] = useState(null);
     const [reserveAnonymously, setReserveAnonymously] = useState(false);
     const totalSteps = 3;
 
@@ -55,7 +56,7 @@ export default function ReservePage(){
                                 <div>
                                 <h1>Select your Laboratory booking date</h1>
                                 <DateSelector dates={queryDates} selectedDate={selectedDate} onDateSelect={(newDate)=>setSelectedDate(newDate)}/>
-                                <LabSlotSelector/>
+                                <LabSlotSelector onSelect={setSelectedLabSlot} selectedLabId={selectedLabSlot?.id} />
                                 </div>
                                 )}
 
@@ -109,10 +110,10 @@ export default function ReservePage(){
                                 <div className={`${ReserveStyles['footer-button-panel']}`}>
                                     <div className={`${ReserveStyles['back-button']}`}
                                     onClick={() => {
-                                        if (currentStep > 0) {
+                                        if (currentStep > 1) {
                                             setCurrentStep(currentStep - 1);
-                                        } else {
-                                            alert("Cancelled booking");
+                                        }else {
+                                            alert("Cancelled booking"); 
                                         }
                                     }}>
                                         Back
@@ -120,7 +121,9 @@ export default function ReservePage(){
 
                                     <div className={`${ReserveStyles['continue-button']}`}
                                      onClick={() => {
-                                        if (currentStep < totalSteps) {
+                                        if (currentStep == 1 && !selectedLabSlot){
+                                            alert("Please select a laboratory first");
+                                        } else if (currentStep < totalSteps) {
                                             setCurrentStep(currentStep + 1);
                                         } else {
                                             alert("Booking Confirmed!");
