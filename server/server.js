@@ -1,25 +1,26 @@
-const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, ".env") });
+const path = require("express");
+require("dotenv").config();
 const express = require("express");
+const cors = require("cors"); 
 
 const connectDB = require("./model/db");
+const reservationRoutes = require("./routes/reservation.route");
 
 const app = express();
 
 // Middleware
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(cors()); 
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
 
-// View engine
-app.set("view engine", "hbs");
-app.set("views", path.join(__dirname, "view"));
+// API Routes
+app.use('/api/reservations', reservationRoutes); 
 
+// Database Connection and Server Start
 connectDB().then(() => {
   const PORT = process.env.PORT || 3000;
-
   app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`API Server is running on http://localhost:${PORT}`);
   });
 }).catch((error) => {
   console.error("Failed to start server:", error.message);
