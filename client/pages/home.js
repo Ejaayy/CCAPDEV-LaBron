@@ -3,7 +3,7 @@ import HomeNavbar from "@/components/layout/HomeNavbar/HomeNavbar";
 import styles from "../components/layout/HomeNavbar/HomeNavbar.module.css";
 import SelectStudent from "@/components/home/SelectStudents";
 import CustomCalendar from "@/components/home/CustomCalendar";
-import Announcements from "@/components/home/Announcements";
+//import Announcements from "@/components/home/Announcements";
 import WelcomeUser from "@/components/home/WelcomeUser";
 import UpcomingReservations from "@/components/home/UpcomingReservations";
 import SelectStudents from "@/components/home/SelectStudents";
@@ -65,9 +65,6 @@ export default function Home(){
                         <CustomCalendar reservedDates={myReservations} />
                     </div>
 
-                    <div className={styles['left-container-Announcements']}>
-                        <Announcements />
-                    </div>
                 </div>
 
                 <div>
