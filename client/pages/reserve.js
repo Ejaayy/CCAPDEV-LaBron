@@ -123,15 +123,51 @@ export default function ReservePage(){
                                     </div>
 
                                     <div className={`${ReserveStyles['continue-button']}`}
-                                     onClick={() => {
-                                        if (currentStep == 1 && !selectedLabSlot){
+                                     onClick={async () => {
+                                        if (currentStep === 1 && !selectedLabSlot) {
                                             alert("Please select a laboratory first");
                                         } else if (currentStep < totalSteps) {
                                             setCurrentStep(currentStep + 1);
                                         } else {
-                                            alert("Booking Confirmed!");
+                                            // creating reservation
+                                            const reservationData = {
+                                              
+                                                reservedBy: "65f123abc456def789012345", // placeholders
+                                                reservedFor: "65f123abc456def789012345", // placeholders
+                                                isAnonymous: reserveAnonymously,
+
+                                                // Map selectedSeats array to the schema's slots format
+                                                slots: selectedSeats.map(seatId => ({
+                                                    // placeholders
+                                                    lab: "65f4567890abcdef12345678", 
+                                                    seat: seatId,
+                                                    startTime: new Date(`${selectedDate}T09:00:00`),
+                                                    endTime: new Date(`${selectedDate}T11:00:00`)
+                                                }))
+                                            };
+
+                                            try {
+                                                const response = await fetch('http://localhost:3001/api/reservations', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify(reservationData)
+                                                });
+
+                                                if (response.ok) {
+                                                    const result = await response.json();
+                                                    alert("Reservation successfully created in the database!");
+                                                } else {
+                                                    const error = await response.json();
+                                                    alert(`Error: ${error.message}`);
+                                                }
+                                            } catch (err) {
+                                                console.error("Connection failed:", err);
+                                                alert("Could not connect to the server.");
+                                            }
                                         }
-                                    }}>
+                                    }}
+                                     
+                                     >
                                         Continue
                                     </div>
                                 </div>
