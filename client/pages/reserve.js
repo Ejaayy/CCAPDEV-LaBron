@@ -37,6 +37,7 @@ export default function ReservePage(){
 
     const [queryDates] = useState(getNextSevenDays()); 
     const [selectedDate, setSelectedDate] = useState(queryDates[0].isoDate);
+    const [selectedSeats, setSelectedSeats] = useState(null);
 
     return(
         <>
@@ -62,7 +63,7 @@ export default function ReservePage(){
 
                                 {currentStep == 2 &&(
                                     <div>
-                                        <SeatSelector/>
+                                        <SeatSelector onSelect={setSelectedSeats} selectedLabId={selectedLabSlot?.id}/>
                                     </div>
                                 )}
 
@@ -73,11 +74,11 @@ export default function ReservePage(){
                                         <div className={ReserveStyles.summaryCard}>
                                             <div className={ReserveStyles.summaryRow}>
                                                 <span className={ReserveStyles.summaryLabel}>Laboratory:</span>
-                                                <span className={ReserveStyles.summaryValue}>Gokongwei Computer Lab G403</span>
+                                                <span className={ReserveStyles.summaryValue}>{selectedLabSlot.id}</span>
                                             </div>
                                             <div className={ReserveStyles.summaryRow}>
                                                 <span className={ReserveStyles.summaryLabel}>Date:</span>
-                                                <span className={ReserveStyles.summaryValue}>February 15, 2026</span>
+                                                <span className={ReserveStyles.summaryValue}>{selectedDate}</span>
                                             </div>
                                             <div className={ReserveStyles.summaryRow}>
                                                 <span className={ReserveStyles.summaryLabel}>Time Slot:</span>
@@ -85,7 +86,9 @@ export default function ReservePage(){
                                             </div>
                                             <div className={ReserveStyles.summaryRow}>
                                                 <span className={ReserveStyles.summaryLabel}>Seat Number:</span>
-                                                <span className={ReserveStyles.summaryValue}>A-12</span>
+                                                <span className={ReserveStyles.summaryValue}>{selectedSeats && selectedSeats.length > 0 
+                                                ? selectedSeats.join(', ') 
+                                                : 'None selected'}</span>
                                             </div>
                                         </div>
 

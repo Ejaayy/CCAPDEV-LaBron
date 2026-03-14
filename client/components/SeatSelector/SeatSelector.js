@@ -1,37 +1,40 @@
 import { useState } from 'react';
 import styles from './SeatSelector.module.css';
 
-const TABLES = [
-  { id: 'T1', seats: ['A1', 'A2', 'A3'], reserved: ['A1', 'A2'] },
-  { id: 'T2', seats: ['B1', 'B2', 'B3'], reserved: ['B3'] },
-  { id: 'T3', seats: ['C1', 'C2', 'C3'], reserved: ['C3'] },
-  { id: 'T4', seats: ['A1', 'A2', 'A3'], reserved: ['A3'] },
-  { id: 'T5', seats: ['B1', 'B2', 'B3'], reserved: ['B2'] },
-  { id: 'T6', seats: ['C1', 'C2', 'C3'], reserved: [] },
-  { id: 'T7', seats: ['A1', 'A2', 'A3'], reserved: ['A1'] },
-  { id: 'T8', seats: ['B1', 'B2', 'B3'], reserved: [] },
-  { id: 'T9', seats: ['C1', 'C2', 'C3'], reserved: [] },
-  { id: 'T10', seats: ['A1', 'A2', 'A3'], reserved: [] },
-  { id: 'T11', seats: ['B1', 'B2', 'B3'], reserved: [] },
-  { id: 'T12', seats: ['C1', 'C2', 'C3'], reserved: [] },
-  { id: 'T13', seats: ['A1', 'A2', 'A3'], reserved: [] },
-  { id: 'T14', seats: ['B1', 'B2', 'B3'], reserved: [] },
-  { id: 'T15', seats: ['C1', 'C2', 'C3'], reserved: [] },
+const ALL_SEATS = [
+  'A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1', 'C2', 'C3',
+  'A4', 'A5', 'A6', 'B4', 'B5', 'B6', 'C4', 'C5', 'C6',
+  'A7', 'A8', 'A9', 'B7', 'B8', 'B9', 'C7', 'C8', 'C9', 
+  'A10', 'A11', 'A12', 'B10', 'B11', 'B12', 'C10', 'C11', 'C12', 
+  'A13', 'A14', 'A15', 'B13', 'B14', 'B15', 'C13', 'C14', 'C15', 
 ];
 
-export default function SeatSelector() {
+const MOCK_RESERVED = ['A1', 'A2', 'B3', 'C3', 'A6'];
+
+export default function SeatSelector({ onSelect, selectedLabId }) {
   const [selectedSeats, setSelectedSeats] = useState([]);
 
-  const handleSeatClick = (tableId, seatId, isReserved) => {
-    if (isReserved) return;
+  const handleSeatClick = (seatId) => {
+    if (MOCK_RESERVED.includes(seatId)) return;
 
-    const uniqueId = `${tableId}${seatId}`;
+   
+    const nextSeats = selectedSeats.includes(seatId)
+      ? selectedSeats.filter((id) => id !== seatId)
+      : [...selectedSeats, seatId];
 
-    setSelectedSeats((prev) =>
-      prev.includes(uniqueId)
-        ? prev.filter((id) => id !== uniqueId)
-        : [...prev, uniqueId]
-    );
+    setSelectedSeats(nextSeats);
+    onSelect(nextSeats); 
+  };
+
+  const renderTables = () => {
+    const tableGroups = [];
+    for (let i = 0; i < ALL_SEATS.length; i += 3) {
+      tableGroups.push({
+        id: `T${Math.floor(i / 3) + 1}`,
+        seats: ALL_SEATS.slice(i, i + 3)
+      });
+    }
+    return tableGroups;
   };
 
   return (
@@ -44,32 +47,28 @@ export default function SeatSelector() {
         </div>
 
         <div className={styles.workbenchGrid}>
-            <div className={styles.tableSurface}>Board</div>
-          {TABLES.map((table) => (
+          <div className={styles.tableSurface}>Front Board</div>
+          {renderTables().map((table) => (
             <div key={table.id} className={styles.tableBlock}>
-              
-            
               <div className={styles.tableSurface}>
                 <span className={styles.tableLabel}>{table.id}</span>
               </div>
 
-         
               <div className={styles.seatsRow}>
-                {table.seats.map((seat) => {
-                  const isReserved = table.reserved.includes(seat);
-                  const uniqueSeatId = `${table.id}${seat}`;
-                  const isSelected = selectedSeats.includes(uniqueSeatId);
+                {table.seats.map((seatId) => {
+                  const isReserved = MOCK_RESERVED.includes(seatId);
+                  const isSelected = selectedSeats.includes(seatId);
 
                   return (
                     <div
-                      key={uniqueSeatId}
+                      key={seatId}
                       className={`${styles.seatBox} ${
                         isReserved ? styles.seatReserved : 
                         isSelected ? styles.seatSelecting : styles.seatAvailable
                       }`}
-                      onClick={() => handleSeatClick(table.id, seat, isReserved)}
+                      onClick={() => handleSeatClick(seatId)}
                     >
-                      {seat}
+                      {seatId}
                     </div>
                   );
                 })}
@@ -79,30 +78,27 @@ export default function SeatSelector() {
         </div>
       </div>
 
-   
       <div className={styles.summarySidebar}>
         <h3>Reservation Summary</h3>
         <div className={styles.summaryContent}>
           <div className={styles.summaryRow}>
             <span>Lab Room:</span>
-            <span>401</span>
+            <span>{selectedLabId}</span>
           </div>
           <div className={styles.summaryRow}>
             <span>Seats:</span>
             <span className={styles.highlightText}>
-              {selectedSeats.length > 0 
-                ? selectedSeats.map(id => id.replace('T', 'Table ')).join(', ') 
-                : 'None'}
+              {selectedSeats.length > 0 ? selectedSeats.join(', ') : 'None'}
             </span>
           </div>
           <div className={styles.summaryRow}>
-            <span>Total Count:</span>
+            <span>Total:</span>
             <span>{selectedSeats.length}</span>
           </div>
           <hr className={styles.subDivider} />
           <button 
             className={styles.clearButton}
-            onClick={() => setSelectedSeats([])}
+            onClick={() => { setSelectedSeats([]); onSelect([]); }}
             disabled={selectedSeats.length === 0}
           >
             Clear Selection
