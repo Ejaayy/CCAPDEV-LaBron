@@ -4,7 +4,12 @@ const express = require("express");
 const cors = require("cors"); 
 
 const connectDB = require("./model/db");
+
+const Lab = require('./model/Lab');       
+const Slot = require('./model/slot.model');
+
 const reservationRoutes = require("./routes/reservation.route");
+const slotRoutes = require('./routes/slot.route');
 
 const app = express();
 
@@ -15,6 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // API Routes
 app.use('/api/reservations', reservationRoutes); 
+app.use('/api/slots', slotRoutes);
+
 
 // Database Connection and Server Start
 connectDB().then(() => {

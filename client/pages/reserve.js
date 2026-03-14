@@ -3,7 +3,7 @@ import HomeNavbar from '@/components/layout/HomeNavbar/HomeNavbar';
 import BookingStepper from '@/components/Stepper/Stepper'
 import DateSelector from '@/components/DateSelector/DateSelector';
 import LabSlotSelector from '@/components/LabSlotSelector/LabSlotSelector';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SeatSelector from '@/components/SeatSelector/SeatSelector';
 
 export default function ReservePage(){
@@ -37,7 +37,27 @@ export default function ReservePage(){
 
     const [queryDates] = useState(getNextSevenDays()); 
     const [selectedDate, setSelectedDate] = useState(queryDates[0].isoDate);
-    const [selectedSeats, setSelectedSeats] = useState(null);
+
+    const [availableSlots, setAvailableSlots] = useState([]);
+    const [selectedSeats, setSelectedSeats] = useState([]);
+
+
+    useEffect(() => {
+        const fetchSlots = async () => {
+            try {
+                const response = await fetch(`http://localhost:3001/api/slots?date=${selectedDate}`);
+                const data = await response.json();
+                setAvailableSlots(data);
+            } catch (error) {
+                console.error("Failed to fetch slots:", error);
+            }
+        };
+
+        if (selectedDate) {
+            fetchSlots();
+        }
+    }, [selectedDate]); // dependent on date selection
+    
 
     return(
         <>
@@ -57,7 +77,7 @@ export default function ReservePage(){
                                 <div>
                                 <h1>Select your Laboratory booking date</h1>
                                 <DateSelector dates={queryDates} selectedDate={selectedDate} onDateSelect={(newDate)=>setSelectedDate(newDate)}/>
-                                <LabSlotSelector onSelect={setSelectedLabSlot} selectedLabId={selectedLabSlot?.id} />
+                                <LabSlotSelector slots={availableSlots} onSelect={setSelectedLabSlot} selectedSlotId={selectedLabSlot?._id} />
                                 </div>
                                 )}
 
@@ -74,7 +94,7 @@ export default function ReservePage(){
                                         <div className={ReserveStyles.summaryCard}>
                                             <div className={ReserveStyles.summaryRow}>
                                                 <span className={ReserveStyles.summaryLabel}>Laboratory:</span>
-                                                <span className={ReserveStyles.summaryValue}>{selectedLabSlot.id}</span>
+                                                <span className={ReserveStyles.summaryValue}>{selectedLabSlot?.lab?.name || 'Not Selected'}</span>
                                             </div>
                                             <div className={ReserveStyles.summaryRow}>
                                                 <span className={ReserveStyles.summaryLabel}>Date:</span>

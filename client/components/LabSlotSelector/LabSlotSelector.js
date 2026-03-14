@@ -2,28 +2,25 @@ import styles from './LabSlotSelector.module.css';
 import { FaMicroscope, FaChevronDown, FaSearch } from 'react-icons/fa';
 import { useState } from 'react';
 
-const LABS = [
-  { id: '301', seats: 15, status: 'Available' },
-  { id: '401', seats: 15, status: 'Available' },
-  { id: '402', seats: 4, status: 'Limited' },
-  { id: '505', seats: 20, status: 'Available' },
-  { id: '501', seats: 0, status: 'Full' },
-];
-
-export default function LabSlotSelector({onSelect, selectedLabId}) {
+export default function LabSlotSelector({ slots, onSelect, selectedSlotId }) {
   const [searchQuery, setSearchQuery] = useState('');
-  
-  const startTime = "07:30 AM";
-  const endTime = "09:00 AM"; 
 
-  // Filter labs based on search query
-  const filteredLabs = LABS.filter((lab) => 
-    lab.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    `lab ${lab.id}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    `gk-${lab.id}`.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredSlots = (slots || []).filter((slot) => {
+    const labName = slot.lab?.name || '';
+    const labLocation = slot.lab?.location || '';
+    return (
+      labName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      labLocation.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
+
+
+  if (!slots || !Array.isArray(slots) || slots.length === 0){
+    return <div className={styles.noSlots}>No available slots for this date.</div>;
+  }
 
   return (
+    
     <div className={styles.slotContainer}>
       {/* Search Bar */}
       <div className={styles.labSearchContainer}>
@@ -37,34 +34,40 @@ export default function LabSlotSelector({onSelect, selectedLabId}) {
         />
       </div>
 
-      {filteredLabs.length === 0 ? (
+      {filteredSlots.length === 0 ? (
         <div className={styles.noResults}>
           No labs found matching &quot;{searchQuery}&quot;
         </div>
       ) : (
-        filteredLabs.map((lab) => (
-          <div key={lab.id} className={`${styles.labRow} ${selectedLabId === lab.id ? styles.selectedRow : ''}`} onClick={() => onSelect(lab)}>
+        filteredSlots.map((slot) => (
+
+          <div 
+            key={slot._id} 
+            className={`${styles.labRow} ${selectedSlotId === slot._id ? styles.selectedRow : ''}`} 
+            onClick={() => onSelect(slot)}
+          >
             {/* Lab Info Column */}
             <div className={styles.labInfo}>
               <div className={styles.labName}>
-               
-                <span>Lab {lab.id}</span>
+           
+                <span>Lab {slot.lab?.name || 'N/A'}</span>
               </div>
-              <span className={styles.timeRange}>{startTime} - {endTime}</span>
+     
             </div>
 
             {/* Duration Column */}
-            <div className={styles.duration}>90m</div>
+            <div className={styles.duration}>{slot.startTime} - {slot.endTime}</div>
 
-            {/* Reference ID (Like flight number) */}
-            <div className={styles.labId}>GK-{lab.id}</div>
-
-            {/* Pricing/Seats Column */}
+            {/* Reference ID Column (Location + Name) */}
+            <div className={styles.labId}>
+                {slot.lab?.location}
+            </div>
+    
             <div className={styles.bookingAction}>
               <div className={styles.seatInfo}>
                 <span className={styles.seatPrice}>Free Admission</span>
-                <span className={`${styles.seatsLeft} ${lab.seats < 5 ? styles.urgent : ''}`}>
-                  {lab.seats} seats left at this time
+                <span className={`${styles.seatsLeft} ${slot.lab?.seatCount < 5 ? styles.urgent : ''}`}>
+                  {slot.lab?.seatCount || 0} seats total
                 </span>
               </div>
             </div>
