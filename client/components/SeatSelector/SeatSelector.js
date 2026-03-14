@@ -1,23 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './SeatSelector.module.css';
 
-const ALL_SEATS = [
+export default function SeatSelector({ onSelect, selectedSlotId, labData }) {
+
+  // Constant seat capacity for css
+  const ALL_SEATS = [
   'A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1', 'C2', 'C3',
   'A4', 'A5', 'A6', 'B4', 'B5', 'B6', 'C4', 'C5', 'C6',
   'A7', 'A8', 'A9', 'B7', 'B8', 'B9', 'C7', 'C8', 'C9', 
   'A10', 'A11', 'A12', 'B10', 'B11', 'B12', 'C10', 'C11', 'C12', 
   'A13', 'A14', 'A15', 'B13', 'B14', 'B15', 'C13', 'C14', 'C15', 
 ];
-
-const MOCK_RESERVED = ['A1', 'A2', 'B3', 'C3', 'A6'];
-
-export default function SeatSelector({ onSelect, selectedLabId }) {
+  
+  const currentSeats = labData?.seats || [];
+  
+  const [occupiedSeats, setOccupiedSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState([]);
 
-  const handleSeatClick = (seatId) => {
-    if (MOCK_RESERVED.includes(seatId)) return;
+  // Fetch current occupancy
+  useEffect(() => {
+      const fetchOccupancy = async () => {
+          if (!selectedSlotId) return;
+          try {
+            const response = await fetch(`http://localhost:3001/api/slots/${selectedSlotId}/occupancy`);
+            const data = await response.json();
+            setOccupiedSeats(data); //format: ["A1", "B3"]
+          } catch (error) {
+            console.error("Failed to fetch seat occupancy:", error);
+          }
+      };
+      fetchOccupancy();
+  }, [selectedSlotId]);
 
-   
+  const handleSeatClick = (seatId, existsInLab) => {
+    // Block if the seat isnt in lab definition
+    // Block if the seat is already occupied
+    if (!existsInLab || occupiedSeats.includes(seatId)) return;
+
     const nextSeats = selectedSeats.includes(seatId)
       ? selectedSeats.filter((id) => id !== seatId)
       : [...selectedSeats, seatId];
@@ -56,19 +75,22 @@ export default function SeatSelector({ onSelect, selectedLabId }) {
 
               <div className={styles.seatsRow}>
                 {table.seats.map((seatId) => {
-                  const isReserved = MOCK_RESERVED.includes(seatId);
+                  const existsInLab = labData?.seats?.includes(seatId);
+                  const isReserved = occupiedSeats.includes(seatId);
                   const isSelected = selectedSeats.includes(seatId);
 
                   return (
                     <div
                       key={seatId}
                       className={`${styles.seatBox} ${
+                        !existsInLab ? styles.seatReserved : 
                         isReserved ? styles.seatReserved : 
                         isSelected ? styles.seatSelecting : styles.seatAvailable
                       }`}
-                      onClick={() => handleSeatClick(seatId)}
+                      onClick={() => handleSeatClick(seatId, existsInLab)}
                     >
-                      {seatId}
+                      {/* Only show seat name if seat exists in specified lab*/}
+                      {existsInLab ? seatId : ""}
                     </div>
                   );
                 })}
@@ -83,7 +105,7 @@ export default function SeatSelector({ onSelect, selectedLabId }) {
         <div className={styles.summaryContent}>
           <div className={styles.summaryRow}>
             <span>Lab Room:</span>
-            <span>{selectedLabId}</span>
+            <span>{labData?.name}</span>
           </div>
           <div className={styles.summaryRow}>
             <span>Seats:</span>

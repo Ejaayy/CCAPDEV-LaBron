@@ -1,4 +1,6 @@
 const Slot = require('../model/slot.model');
+const Reservation = require('../model/reservation.model');
+
 
 exports.getSlotsByDate = async (requestedDate) => {
     return await Slot.find({ 
@@ -32,4 +34,20 @@ exports.getWeeklyCount = async (startDate, daysCount = 7) => {
         });
     }
     return results;
+};
+
+exports.getReservedSeatsForSlot = async (slotId) => {
+   
+    const reservations = await Reservation.find({ 
+        "slots.slot": slotId,
+        status: "active" // Only active bookings
+    });
+        
+    const reservedSeats = reservations.flatMap(res => 
+        res.slots
+           .filter(s => s.slot.toString() === slotId.toString())
+           .map(s => s.seat)
+    );
+    
+    return reservedSeats;
 };

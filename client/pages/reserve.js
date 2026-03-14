@@ -119,7 +119,11 @@ export default function ReservePage(){
 
                                 {currentStep == 2 &&(
                                     <div>
-                                        <SeatSelector onSelect={setSelectedSeats} selectedLabId={selectedLabSlot?.lab?.name}/>
+                                        <SeatSelector 
+                                        onSelect={setSelectedSeats} 
+                                        selectedSlotId={selectedLabSlot?._id}
+                                        labData={selectedLabSlot?.lab}
+                                        />
                                     </div>
                                 )}
 
@@ -194,12 +198,9 @@ export default function ReservePage(){
 
                                                 // Map selectedSeats array to the schema's slots format
                                                 slots: selectedSeats.map(seatId => ({
-                                                    // placeholders
-                                                    lab: "65f4567890abcdef12345678", 
-                                                    seat: seatId,
-                                                    startTime: new Date(`${selectedDate}T09:00:00`),
-                                                    endTime: new Date(`${selectedDate}T11:00:00`)
-                                                }))
+                                                slot: selectedLabSlot._id, 
+                                                seat: seatId
+                                            }))
                                             };
 
                                             try {

@@ -23,3 +23,16 @@ exports.getWeeklyOverview = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.getSlotOccupancy = async (req, res) => {
+    try {
+        const { id } = req.params; 
+    
+        const occupiedSeats = await slotService.getReservedSeatsForSlot(id);
+        
+        res.status(200).json(occupiedSeats);
+    } catch (error) {
+        console.error("Occupancy Error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
