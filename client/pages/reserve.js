@@ -16,30 +16,55 @@ export default function ReservePage(){
 
     // Helper function to calculate display for next 7 days
     const getNextSevenDays = () => {
-    const days = [];
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const days = [];
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    for (let i = 0; i < 7; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() + i);
+        for (let i = 0; i < 7; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() + i);
 
-        days.push({
-        displayDay: dayNames[d.getDay()],
-        displayDate: `${d.getDate().toString().padStart(2, '0')} ${monthNames[d.getMonth()]}`,
-        isoDate: d.toISOString().split('T')[0], // example format:  "2026-03-11"
-        isAvailable: true,
-        labs: 4
-        });
-    }
+            days.push({
+            displayDay: dayNames[d.getDay()],
+            displayDate: `${d.getDate().toString().padStart(2, '0')} ${monthNames[d.getMonth()]}`,
+            isoDate: d.toISOString().split('T')[0], // example format:  "2026-03-11"
+            isAvailable: true,
+            labs: 4
+            });
+        }
     return days;
     };
 
-    const [queryDates] = useState(getNextSevenDays()); 
+    const [queryDates, setQueryDates] = useState(getNextSevenDays()); 
     const [selectedDate, setSelectedDate] = useState(queryDates[0].isoDate);
 
     const [availableSlots, setAvailableSlots] = useState([]);
     const [selectedSeats, setSelectedSeats] = useState([]);
+
+
+    useEffect(() => {
+        const updateDateCounts = async () => {
+            try {
+                const response = await fetch('http://localhost:3001/api/slots/overview');
+                const countsMap = await response.json(); // Array of {date, count}
+
+                const updatedDates = queryDates.map(dateObj => {
+                    const match = countsMap.find(item => item.date === dateObj.isoDate);
+                    return {
+                        ...dateObj,
+                        labs: match ? match.count : 0, 
+                        isAvailable: match ? match.count > 0 : false
+                    };
+                });
+
+                setQueryDates(updatedDates);
+            } catch (error) {
+                console.error("Failed to load weekly overview:", error);
+            }
+        };
+
+        updateDateCounts();
+    }, []); 
 
 
     useEffect(() => {
@@ -76,14 +101,25 @@ export default function ReservePage(){
                                 
                                 <div>
                                 <h1>Select your Laboratory booking date</h1>
-                                <DateSelector dates={queryDates} selectedDate={selectedDate} onDateSelect={(newDate)=>setSelectedDate(newDate)}/>
-                                <LabSlotSelector slots={availableSlots} onSelect={setSelectedLabSlot} selectedSlotId={selectedLabSlot?._id} />
+                                <DateSelector 
+                                    dates={queryDates}
+                                    selectedDate={selectedDate} 
+                                    onDateSelect={(newDate)=> {
+                                        setSelectedDate(newDate)
+                                        setSelectedLabSlot(null)
+                                    }}
+                                />
+                                <LabSlotSelector 
+                                    slots={availableSlots} 
+                                    onSelect={setSelectedLabSlot} 
+                                    selectedSlotId={selectedLabSlot?._id} 
+                                />
                                 </div>
                                 )}
 
                                 {currentStep == 2 &&(
                                     <div>
-                                        <SeatSelector onSelect={setSelectedSeats} selectedLabId={selectedLabSlot?.id}/>
+                                        <SeatSelector onSelect={setSelectedSeats} selectedLabId={selectedLabSlot?.lab?.name}/>
                                     </div>
                                 )}
 

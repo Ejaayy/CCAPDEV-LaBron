@@ -16,8 +16,8 @@ export default function DateSelector({ dates, selectedDate, onDateSelect }) {
               onClick={()=> isAvailable && onDateSelect(item.isoDate)}
             >
               <span className={styles.dateLabel}>{item.displayDay} {item.displayDate}</span>
-              <span className={styles.labCount}>
-                {isAvailable ? `${item.labs} Labs Available` : 'Not Available'}
+              <span className={styles.labCount} >
+                {item.labs} {item.labs === 1 ? 'slot' : 'slots'}
               </span>
             </div>
           );

@@ -13,3 +13,13 @@ exports.getAvailableSlots = async (req, res) => {
        res.status(500).json({ message: error.message, stack: error.stack });
     }
 };
+
+exports.getWeeklyOverview = async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const overview = await slotService.getWeeklyCount(today, 7);
+        res.status(200).json(overview);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
