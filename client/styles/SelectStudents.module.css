@@ -10,7 +10,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
 }
 
 .title {
@@ -49,7 +48,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px;
+  margin-top: 8px;
+  padding: 5px;
   border-radius: 12px;
   transition: all 0.2s ease;
   cursor: pointer;

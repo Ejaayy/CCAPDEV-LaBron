@@ -55,6 +55,12 @@ The following describes the features of a computer laboratory slot (seat) reserv
 ## Search for users / free slots
   o Users can view all the available slots given a provided date and time, and the lab.
 
+## Installation of Backend Dependencies
+  o In terminal run this code: npm install express mongodb dotenv bcrypt hbs
+
+## Connecting to the Databse
+  o Open MongoDB, add connection and inser this: "mongodb://127.0.0.1:27017/". Name the database as "ccapdev_labkoto"
+
 ## General
   o Good user experience. Visitors can easily navigate without help, all information is easy to access. 
     Good visual design. Design suits the theme of the application, and is cohesive and consistent across the whole application.
