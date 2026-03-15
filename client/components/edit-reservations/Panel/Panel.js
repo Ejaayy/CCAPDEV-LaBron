@@ -2,7 +2,7 @@ import { useState } from "react";
 import styles from "./Panel.module.css";
 import { FaPen } from 'react-icons/fa';
 
-export default function Panel({ selectedSlot, addStudent, removeStudent, onToggleBlock, onEditStudent }) {
+export default function Panel({ selectedSlot, addStudent, removeStudent, onToggleBlock, onEditStudent, onBack }) {
   const [studentName, setStudentName] = useState("");
   const [studentSeat, setStudentSeat] = useState("");
   const [editingStudent, setEditingStudent] = useState(null);
@@ -48,11 +48,18 @@ export default function Panel({ selectedSlot, addStudent, removeStudent, onToggl
 
   return (
     <div className={styles.panel}>
+      {onBack && (
+        <button className={styles.backBtn} onClick={onBack}>
+          ← Back to slots
+        </button>
+      )}
       <h3>Selected Slot</h3>
 
       <div className={styles.panelSection}>
         <div className={styles.panelLabel}>Room</div>
-        {selectedSlot.room.name}
+        {selectedSlot.room.location
+          ? `${selectedSlot.room.location} - ${selectedSlot.room.name}`
+          : selectedSlot.room.name}
       </div>
 
       <div className={styles.panelSection}>
@@ -86,7 +93,7 @@ export default function Panel({ selectedSlot, addStudent, removeStudent, onToggl
         <>
           <div className={styles.panelSection}>
             <div className={styles.panelLabel}>Students Reserved</div>
-            {selectedSlot.slot.students.map((student, i) => (
+            {(selectedSlot.slot.students || []).map((student, i) => (
               <div key={i} className={styles.studentItem}>
                 {editingStudent === i ? (
                   <div className={styles.editStudentForm}>

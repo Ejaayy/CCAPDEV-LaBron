@@ -10,6 +10,16 @@
   transition: all 0.2s ease;
 }
 
+.time {
+  font-weight: 600;
+}
+
+.capacity {
+  font-size: 10px;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
 .available {
   background: #0F172A;
   color: #37c7e1;
@@ -23,6 +33,13 @@
 .full {
   background: #1F1A2A;
   color: #F87171;
+}
+
+.blocked {
+  background: #374151;
+  color: #9ca3af;
+  text-decoration: line-through;
+  cursor: not-allowed;
 }
 
 

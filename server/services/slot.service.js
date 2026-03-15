@@ -1,12 +1,13 @@
-const Slot = require('../model/slot.model');
-const Reservation = require('../model/reservation.model');
+const Slot = require("../model/slot.model");
+const Reservation = require("../model/reservation.model");
 
 
-exports.getSlotsByDate = async (requestedDate) => {
-    return await Slot.find({ 
-        date: requestedDate, 
-        isAvailable: true 
-    }).populate('lab');
+exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
+    const query = { date: requestedDate };
+    if (!includeBlocked) {
+        query.isAvailable = true;
+    }
+    return await Slot.find(query).populate('lab');
 };
 
 exports.createSlot = async (slotData) => {
@@ -37,17 +38,53 @@ exports.getWeeklyCount = async (startDate, daysCount = 7) => {
 };
 
 exports.getReservedSeatsForSlot = async (slotId) => {
-   
-    const reservations = await Reservation.find({ 
+    const reservations = await Reservation.find({
         "slots.slot": slotId,
-        status: "active" // Only active bookings
+        status: "active",
     });
-        
-    const reservedSeats = reservations.flatMap(res => 
+
+    const reservedSeats = reservations.flatMap((res) =>
         res.slots
-           .filter(s => s.slot.toString() === slotId.toString())
-           .map(s => s.seat)
+            .filter((s) => s.slot.toString() === slotId.toString())
+            .map((s) => s.seat)
     );
-    
+
     return reservedSeats;
+};
+
+exports.getSlotReservationDetails = async (slotId) => {
+    const reservations = await Reservation.find({
+        "slots.slot": slotId,
+        status: "active",
+    })
+        .populate("reservedFor", "firstName lastName")
+        .populate("reservedBy", "firstName lastName");
+
+    const occupiedSeats = [];
+    const reservationDetails = [];
+
+    reservations.forEach((res) => {
+        res.slots
+            .filter((s) => s.slot.toString() === slotId.toString())
+            .forEach((s) => {
+                occupiedSeats.push(s.seat);
+                const userName = res.reservedFor
+                    ? res.isAnonymous
+                        ? "Anonymous"
+                        : `${res.reservedFor.firstName || ""} ${res.reservedFor.lastName || ""}`.trim()
+                    : "Unknown";
+                reservationDetails.push({ name: userName, seat: s.seat });
+            });
+    });
+
+    return { occupiedSeats, reservations: reservationDetails };
+};
+
+exports.updateSlotAvailability = async (slotId, isAvailable) => {
+    const slot = await Slot.findByIdAndUpdate(
+        slotId,
+        { isAvailable },
+        { new: true }
+    ).populate('lab');
+    return slot;
 };

@@ -1,0 +1,30 @@
+.labCard {
+  background: #1F2234;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.labCard:hover {
+  background: #242738;
+}
+
+.labCard.selected {
+  border: 2px solid #3B82F6;
+  background: #242738;
+}
+
+.labLabel {
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.capacity {
+  font-size: 13px;
+  color: #94A3B8;
+}

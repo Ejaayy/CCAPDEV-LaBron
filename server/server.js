@@ -10,6 +10,7 @@ const Slot = require('./model/slot.model');
 
 const reservationRoutes = require("./routes/reservation.route");
 const slotRoutes = require('./routes/slot.route');
+const labRoutes = require('./routes/lab.route');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 // API Routes
 app.use('/api/reservations', reservationRoutes); 
 app.use('/api/slots', slotRoutes);
+app.use('/api/labs', labRoutes);
 
 
 // Database Connection and Server Start

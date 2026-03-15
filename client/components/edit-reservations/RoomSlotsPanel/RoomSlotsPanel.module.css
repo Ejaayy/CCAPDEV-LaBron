@@ -1,0 +1,33 @@
+.panel {
+  background: #1F2234;
+  border-left: 1px solid #1E293B;
+  padding: 24px;
+  border-radius: 10px;
+  overflow-y: auto;
+  color: white;
+}
+
+.roomLabel {
+  font-size: 14px;
+  color: #94A3B8;
+  margin-bottom: 4px;
+}
+
+.dateHint {
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 16px;
+}
+
+.slotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  color: #94A3B8;
+  font-size: 14px;
+  padding: 16px 0;
+}

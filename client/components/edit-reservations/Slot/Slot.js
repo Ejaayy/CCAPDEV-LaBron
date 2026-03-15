@@ -1,6 +1,6 @@
 import styles from "./Slot.module.css";
 
-export default function Slot({ time, status, isBlocked, onClick }) {
+export default function Slot({ time, status, isBlocked, onClick, capacity }) {
   let className = styles.slot;
 
   if (isBlocked || status === "blocked") {
@@ -15,7 +15,8 @@ export default function Slot({ time, status, isBlocked, onClick }) {
 
   return (
     <div className={className} onClick={onClick}>
-      {isBlocked || status === "blocked" ? " " : ""}{time}
+      <div className={styles.time}>{time}</div>
+      {capacity != null && <div className={styles.capacity}>{capacity}</div>}
     </div>
   );
 }

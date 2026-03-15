@@ -1,249 +1,262 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import HomeNavbar from "@/components/layout/HomeNavbar/HomeNavbar";
 import TopBar from "@/components/edit-reservations/TopBar/TopBar";
-import RoomCard from "@/components/edit-reservations/RoomCard/RoomCard";
+import LabCard from "@/components/edit-reservations/LabCard/LabCard";
+import RoomSlotsPanel from "@/components/edit-reservations/RoomSlotsPanel/RoomSlotsPanel";
 import Panel from "@/components/edit-reservations/Panel/Panel";
+import AddRoomModal from "@/components/edit-reservations/AddRoomModal/AddRoomModal";
 import styles from "./ManageReservations.module.css";
 
-export default function Dashboard() {
-  const [date, setDate] = useState("");
-  const [search, setSearch] = useState("");
-  const [selectedSlot, setSelectedSlot] = useState(null);
+const API_BASE = "http://localhost:3001/api";
 
-  const [rooms, setRooms] = useState([
-    {
-      name: "Room A",
-      capacity: 30,
-      slots: [
-        { time: "0730–0900", status: "available", students: [{ name: "Juan Dela Cruz", seat: "A-01" }], isBlocked: false },
-        { time: "9300–1100", status: "full", students: [{ name: "Maria Santos", seat: "A-02" }], isBlocked: false },
-        { time: "1130–1300", status: "almost-full", students: [{ name: "Alex Lim", seat: "A-03" }], isBlocked: false },
-        { time: "1330–1500", status: "available", students: [], isBlocked: false },
-        { time: "1530–1700", status: "available", students: [], isBlocked: false },
-        { time: "1730–1900", status: "full", students: [{ name: "Sample Student", seat: "A-04" }], isBlocked: false },
-      ],
-    },
-    {
-      name: "Room B",
-      capacity: 20,
-      slots: [
-        { time: "0730–0900", status: "full", students: [{ name: "Juan Dela Cruz", seat: "B-01" }], isBlocked: false },
-        { time: "9300–1100", status: "full", students: [{ name: "Maria Santos", seat: "B-02" }], isBlocked: false },
-        { time: "1130–1300", status: "available", students: [], isBlocked: false },
-        { time: "1330–1500", status: "available", students: [], isBlocked: false },
-        { time: "1530–1700", status: "almost-full", students: [{ name: "Alex Lim", seat: "B-03" }], isBlocked: false },
-        { time: "1730–1900", status: "available", students: [], isBlocked: false },
-      ],
-    },
-    {
-      name: "Room C",
-      capacity: 25,
-      slots: [
-        { time: "0730–0900", status: "available", students: [], isBlocked: false },
-        { time: "9300–1100", status: "almost-full", students: [{ name: "Ana Garcia", seat: "C-01" }], isBlocked: false },
-        { time: "1130–1300", status: "full", students: [{ name: "Pedro Reyes", seat: "C-02" }, { name: "Sofia Cruz", seat: "C-03" }], isBlocked: false },
-        { time: "1330–1500", status: "available", students: [], isBlocked: false },
-        { time: "1530–1700", status: "full", students: [{ name: "Carlos Mendoza", seat: "C-04" }], isBlocked: false },
-        { time: "1730–1900", status: "available", students: [], isBlocked: false },
-      ],
-    },
-    {
-      name: "Room D",
-      capacity: 35,
-      slots: [
-        { time: "0730–0900", status: "almost-full", students: [{ name: "Elena Ramos", seat: "D-01" }], isBlocked: false },
-        { time: "9300–1100", status: "available", students: [], isBlocked: false },
-        { time: "1130–1300", status: "available", students: [], isBlocked: false },
-        { time: "1330–1500", status: "full", students: [{ name: "Miguel Torres", seat: "D-02" }], isBlocked: false },
-        { time: "1530–1700", status: "available", students: [], isBlocked: false },
-        { time: "1730–1900", status: "almost-full", students: [{ name: "Isabella Fernandez", seat: "D-03" }], isBlocked: false },
-      ],
-    },
-    {
-      name: "Room E",
-      capacity: 40,
-      slots: [
-        { time: "0730–0900", status: "full", students: [{ name: "David Martinez", seat: "E-01" }, { name: "Laura Gonzales", seat: "E-02" }], isBlocked: false },
-        { time: "9300–1100", status: "available", students: [], isBlocked: false },
-        { time: "1130–1300", status: "almost-full", students: [{ name: "Roberto Silva", seat: "E-03" }], isBlocked: false },
-        { time: "1330–1500", status: "available", students: [], isBlocked: false },
-        { time: "1530–1700", status: "available", students: [], isBlocked: false },
-        { time: "1730–1900", status: "full", students: [{ name: "Carmen Diaz", seat: "E-04" }], isBlocked: false },
-      ],
-    },
-  ]);
-
-  const handleSlotClick = (room, slot) => {
-    setSelectedSlot({ room, slot });
-  };
-
-  // Filter rooms based on search query
-  const filteredRooms = rooms.filter(room => {
-    const searchLower = search.toLowerCase();
-    
-    // Match room name
-    if (room.name.toLowerCase().includes(searchLower)) {
-      return true;
-    }
-    
-    // Match student names within slots
-    const hasMatchingStudent = room.slots.some(slot => 
-      slot.students.some(student => {
-        const studentName = typeof student === 'string' ? student : student.name;
-        return studentName.toLowerCase().includes(searchLower);
-      })
+async function safeJson(res) {
+  const text = await res.text();
+  const ct = res.headers.get("content-type") || "";
+  if (!ct.includes("application/json")) {
+    throw new Error(
+      `Expected JSON but got ${ct.split(";")[0] || "HTML"}. Is the API server running on port 3001?`
     );
-    
-    return hasMatchingStudent;
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("Invalid JSON response from server");
+  }
+}
+
+export default function ManageReservations() {
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [search, setSearch] = useState("");
+  const [labs, setLabs] = useState([]);
+  const [slots, setSlots] = useState([]);
+  const [selectedLab, setSelectedLab] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [addRoomModalOpen, setAddRoomModalOpen] = useState(false);
+
+  const fetchLabs = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/labs`);
+      const data = await safeJson(res);
+      setLabs(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch labs:", err);
+      setLabs([]);
+    }
+  }, []);
+
+  const fetchSlots = useCallback(async () => {
+    if (!date) {
+      setSlots([]);
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/slots?date=${date}&all=true`);
+      const data = await safeJson(res);
+      setSlots(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch slots:", err);
+      setSlots([]);
+    }
+  }, [date]);
+
+  useEffect(() => {
+    fetchLabs();
+  }, [fetchLabs]);
+
+  useEffect(() => {
+    fetchSlots();
+  }, [fetchSlots]);
+
+  const filteredLabs = labs.filter((lab) => {
+    const q = search.toLowerCase();
+    return (
+      (lab.name || "").toLowerCase().includes(q) ||
+      (lab.location || "").toLowerCase().includes(q)
+    );
   });
 
+  const slotsForSelectedLab =
+    selectedLab && slots.filter((s) => s.lab?._id === selectedLab._id);
+
+  const handleLabClick = (lab) => {
+    setSelectedLab(lab);
+    setSelectedSlot(null);
+  };
+
+  const handleSlotClick = async (slot) => {
+    const lab = slot.lab || selectedLab;
+    if (!lab) return;
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/slots/${slot._id}/occupancy?details=true`
+      );
+      const data = await safeJson(res);
+      const students = data.reservations || [];
+      const slotWithStudents = {
+        ...slot,
+        time: `${slot.startTime || ""} - ${slot.endTime || ""}`.trim(),
+        students,
+        isBlocked: !slot.isAvailable,
+        status: !slot.isAvailable ? "blocked" : undefined,
+      };
+      setSelectedSlot({ room: lab, slot: slotWithStudents });
+    } catch (err) {
+      console.error("Failed to fetch slot details:", err);
+      setSelectedSlot({
+        room: lab,
+        slot: {
+          ...slot,
+          time: `${slot.startTime || ""} - ${slot.endTime || ""}`.trim(),
+          students: [],
+          isBlocked: !slot.isAvailable,
+          status: !slot.isAvailable ? "blocked" : undefined,
+        },
+      });
+    }
+  };
+
+  const handleAddSlot = async (startTime, endTime) => {
+    if (!selectedLab || !date) return;
+    try {
+      const res = await fetch(`${API_BASE}/slots`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lab: selectedLab._id,
+          date,
+          startTime,
+          endTime,
+        }),
+      });
+      if (res.ok) {
+        await fetchSlots();
+      } else {
+        const err = await safeJson(res);
+        alert(err.message || "Failed to add slot");
+      }
+    } catch (err) {
+      console.error("Failed to add slot:", err);
+      alert("Failed to add slot");
+    }
+  };
+
+  const handleAddRoom = async (labData) => {
+    try {
+      const res = await fetch(`${API_BASE}/labs`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(labData),
+      });
+      if (res.ok) {
+        await fetchLabs();
+        setAddRoomModalOpen(false);
+      } else {
+        const err = await safeJson(res);
+        alert(err.message || "Failed to add room");
+      }
+    } catch (err) {
+      console.error("Failed to add room:", err);
+      alert("Failed to add room");
+    }
+  };
+
+  const toggleBlockSlot = async () => {
+    if (!selectedSlot) return;
+    const slot = selectedSlot.slot;
+    const newAvailable = !!slot.isBlocked || slot.status === "blocked";
+    try {
+      const res = await fetch(`${API_BASE}/slots/${slot._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isAvailable: newAvailable }),
+      });
+      if (res.ok) {
+        await fetchSlots();
+        setSelectedSlot((prev) => ({
+          ...prev,
+          slot: {
+            ...prev.slot,
+            isBlocked: !newAvailable,
+            status: !newAvailable ? "blocked" : undefined,
+          },
+        }));
+      } else {
+        const err = await safeJson(res);
+        alert(err.message || "Failed to update slot");
+      }
+    } catch (err) {
+      console.error("Failed to block/unblock slot:", err);
+      alert("Failed to update slot");
+    }
+  };
+
   const addStudent = (student) => {
-    if (!student || !selectedSlot) return;
-
-    const newStudent = typeof student === 'string' 
-      ? { name: student, seat: 'Unassigned' } 
-      : student;
-
-    setRooms(prevRooms =>
-      prevRooms.map(room => {
-        if (room.name === selectedSlot.room.name) {
-          return {
-            ...room,
-            slots: room.slots.map(slot => {
-              if (slot.time === selectedSlot.slot.time) {
-                return {
-                  ...slot,
-                  students: [...slot.students, newStudent]
-                };
-              }
-              return slot;
-            })
-          };
-        }
-        return room;
-      })
-    );
-
-    // Update the selected slot state
-    setSelectedSlot(prev => ({
+    if (!selectedSlot) return;
+    const newStudent =
+      typeof student === "string" ? { name: student, seat: "Unassigned" } : student;
+    setSelectedSlot((prev) => ({
       ...prev,
       slot: {
         ...prev.slot,
-        students: [...prev.slot.students, newStudent]
-      }
+        students: [...(prev.slot.students || []), newStudent],
+      },
     }));
   };
 
   const removeStudent = (studentName) => {
     if (!selectedSlot) return;
-
-    setRooms(prevRooms =>
-      prevRooms.map(room => {
-        if (room.name === selectedSlot.room.name) {
-          return {
-            ...room,
-            slots: room.slots.map(slot => {
-              if (slot.time === selectedSlot.slot.time) {
-                return {
-                  ...slot,
-                  students: slot.students.filter(s => 
-                    (typeof s === 'string' ? s : s.name) !== studentName
-                  )
-                };
-              }
-              return slot;
-            })
-          };
-        }
-        return room;
-      })
-    );
-
-    // Update the selected slot state
-    setSelectedSlot(prev => ({
+    setSelectedSlot((prev) => ({
       ...prev,
       slot: {
         ...prev.slot,
-        students: prev.slot.students.filter(s => 
-          (typeof s === 'string' ? s : s.name) !== studentName
-        )
-      }
+        students: (prev.slot.students || []).filter(
+          (s) => (typeof s === "string" ? s : s.name) !== studentName
+        ),
+      },
     }));
   };
 
   const editStudent = (index, updatedStudent) => {
     if (!selectedSlot) return;
-
-    setRooms(prevRooms =>
-      prevRooms.map(room => {
-        if (room.name === selectedSlot.room.name) {
-          return {
-            ...room,
-            slots: room.slots.map(slot => {
-              if (slot.time === selectedSlot.slot.time) {
-                const updatedStudents = [...slot.students];
-                updatedStudents[index] = updatedStudent;
-                return {
-                  ...slot,
-                  students: updatedStudents
-                };
-              }
-              return slot;
-            })
-          };
-        }
-        return room;
-      })
-    );
-
-    // Update the selected slot state
-    setSelectedSlot(prev => {
-      const updatedStudents = [...prev.slot.students];
-      updatedStudents[index] = updatedStudent;
-      return {
-        ...prev,
-        slot: {
-          ...prev.slot,
-          students: updatedStudents
-        }
-      };
-    });
+    const students = [...(selectedSlot.slot.students || [])];
+    students[index] = updatedStudent;
+    setSelectedSlot((prev) => ({
+      ...prev,
+      slot: { ...prev.slot, students },
+    }));
   };
 
-  const toggleBlockSlot = () => {
-    if (!selectedSlot) return;
-    
-    setRooms(prevRooms => 
-      prevRooms.map(room => {
-        if (room.name === selectedSlot.room.name) {
-          return {
-            ...room,
-            slots: room.slots.map(slot => {
-              if (slot.time === selectedSlot.slot.time) {
-                const newBlockedState = !slot.isBlocked;
-                return {
-                  ...slot,
-                  isBlocked: newBlockedState,
-                  status: newBlockedState ? 'blocked' : (slot.students.length === 0 ? 'available' : slot.status)
-                };
-              }
-              return slot;
-            })
-          };
-        }
-        return room;
-      })
-    );
+  const handleBackToSlots = () => {
+    setSelectedSlot(null);
+  };
 
-    // Update the selected slot state
-    setSelectedSlot(prev => ({
-      ...prev,
-      slot: {
-        ...prev.slot,
-        isBlocked: !prev.slot.isBlocked,
-        status: !prev.slot.isBlocked ? 'blocked' : (prev.slot.students.length === 0 ? 'available' : prev.slot.status)
-      }
-    }));
+  const renderRightPanel = () => {
+    if (selectedSlot) {
+      return (
+        <Panel
+          selectedSlot={selectedSlot}
+          addStudent={addStudent}
+          removeStudent={removeStudent}
+          onToggleBlock={toggleBlockSlot}
+          onEditStudent={editStudent}
+          onBack={handleBackToSlots}
+        />
+      );
+    }
+    if (selectedLab) {
+      return (
+        <RoomSlotsPanel
+          lab={selectedLab}
+          slots={slotsForSelectedLab || []}
+          selectedSlot={selectedSlot}
+          date={date}
+          onSlotClick={handleSlotClick}
+          onAddSlot={handleAddSlot}
+        />
+      );
+    }
+    return <div className={styles.panelPlaceholder}>Select a room</div>;
   };
 
   return (
@@ -254,7 +267,9 @@ export default function Dashboard() {
         minHeight: "100vh",
       }}
     >
-      <HomeNavbar style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 }} />
+      <HomeNavbar
+        style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 }}
+      />
 
       <img
         src="../../laboratoryPhoto.png"
@@ -284,29 +299,42 @@ export default function Dashboard() {
 
         <div className={styles.container}>
           <div className={styles.schedule}>
-            {filteredRooms.length > 0 ? (
-              filteredRooms.map((room, i) => (
-                <RoomCard
-                  key={i}
-                  room={room}
-                  onSlotClick={handleSlotClick}
+            <div className={styles.addRoomRow}>
+              <button
+                className={styles.addRoomBtn}
+                onClick={() => setAddRoomModalOpen(true)}
+              >
+                + Add Room
+              </button>
+            </div>
+            {filteredLabs.length > 0 ? (
+              filteredLabs.map((lab) => (
+                <LabCard
+                  key={lab._id}
+                  lab={lab}
+                  isSelected={selectedLab?._id === lab._id}
+                  onClick={() => handleLabClick(lab)}
                 />
               ))
             ) : (
               <div className={styles.noResults}>
-                <p>No rooms found matching &ldquo;{search}&rdquo;</p>
+                <p>
+                  {search
+                    ? `No rooms found matching "${search}"`
+                    : "No rooms yet. Add one to get started."}
+                </p>
               </div>
             )}
           </div>
-          <Panel 
-            selectedSlot={selectedSlot} 
-            addStudent={addStudent}
-            removeStudent={removeStudent}
-            onToggleBlock={toggleBlockSlot}
-            onEditStudent={editStudent}
-          />
+          {renderRightPanel()}
         </div>
       </div>
+
+      <AddRoomModal
+        isOpen={addRoomModalOpen}
+        onClose={() => setAddRoomModalOpen(false)}
+        onAddRoom={handleAddRoom}
+      />
     </div>
   );
 }

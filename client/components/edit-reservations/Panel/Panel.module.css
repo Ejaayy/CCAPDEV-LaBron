@@ -8,6 +8,20 @@
   color: white;
 }
 
+.backBtn {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 16px;
+  padding: 0;
+}
+
+.backBtn:hover {
+  color: white;
+}
+
 .panelSection {
   margin-bottom: 20px;
 }
