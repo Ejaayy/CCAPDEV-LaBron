@@ -30,7 +30,7 @@ export default function Home(){
             label: '(Unique Labs Used)',
             value: '3',
             subtext: 'V501, Y403, Br. Andrew',
-            icon: '👥',
+            icon: '🖥️',
         }
     ];
 
@@ -39,12 +39,12 @@ export default function Home(){
         {
             id: 'book',
             label: 'Book Next Available Seat',
-            icon: '💺'
+            icon: '/next_available_seat.png',
         },
         {
             id: 'edit',
             label: 'Manage Latest Reservation',
-            icon: '📝'
+            icon: '/manage_latest.png'
         }
     ];
 

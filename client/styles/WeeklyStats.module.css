@@ -1,3 +1,4 @@
+
 .container-card {
     background-color: #ffffff;
     border-radius: 18px;
@@ -27,7 +28,7 @@
 
 .stat-icon-wrapper {
     font-size: 1.5rem;
-    color: #cbd5e0; 
+    color: #cbd5e0;
     margin-right: 16px;
     min-width: 40px;
     display: flex;
@@ -40,13 +41,11 @@
     flex-direction: column;
 }
 
-/* Stays stacked for Hours */
 .header-vertical {
     display: flex;
     flex-direction: column;
 }
 
-/* Side-by-side for Alert and Labs Used */
 .header-horizontal {
     display: flex;
     flex-direction: row;
@@ -81,30 +80,72 @@
 }
 
 .actions-grid {
-    display: flex;
-    gap: 35px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+    gap: 18px;
 }
 
 .action-button {
-    background: none;
+    background: transparent;
+    color: inherit;
     border: none;
-    cursor: pointer;
+    border-radius: 0;
+    padding: 12px 10px;
+    min-height: 100px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 110px;
-    padding: 0;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none;
+}
+
+.action-button:hover {
+    transform: translateY(-2px);
+}
+
+.action-button:active {
+    transform: translateY(0);
 }
 
 .action-icon-wrapper {
-    font-size: 2.5rem;
-    color: #5a67d8; 
-    margin-bottom: 8px;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.action-icon-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    background: transparent;
 }
 
 .action-label {
     font-size: 0.8rem;
-    font-weight: 600;
-    color: #2d3748;
-    line-height: 1.2;
+    font-weight: 700;
+    color: #243554;
+    text-align: center;
+    line-height: 1.35;
+    max-width: 100px;
+}
+
+@media (max-width: 900px) {
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-button {
+        min-height: 120px;
+    }
 }

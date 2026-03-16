@@ -5,7 +5,7 @@ import { FiClock, FiUsers, FiEdit2, FiCheckSquare } from 'react-icons/fi'; // Us
 const StatsAndActions = ({ stats = [], actions = [] }) => {
     return (
         <div className={styles['container-card']}>
-            <h3 className={styles['section-title']}>YOUR WEEKLY STATS</h3>
+            <h3 className={styles['section-title']}>ACTIVITY OVERVIEW</h3>
             
             <div className={styles['stats-grid']}>
                 {stats.map((stat, index) => (
@@ -37,7 +37,13 @@ const StatsAndActions = ({ stats = [], actions = [] }) => {
                 {actions.map((action, index) => (
                     <button key={action.id || index} className={styles['action-button']}>
                         <div className={styles['action-icon-wrapper']}>
-                            {action.icon}
+                            {typeof action.icon === 'string' && action.icon.startsWith('/') ? (
+                                <img
+                                    src={action.icon}
+                                    alt={action.label}
+                                    className={styles['action-icon-image']}
+                                />
+                            ) : (action.icon)}
                         </div>
                         <span className={styles['action-label']}>{action.label}</span>
                     </button>
