@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HomeNavbar from "@/components/layout/HomeNavbar/HomeNavbar";
 import styles from "../components/layout/HomeNavbar/HomeNavbar.module.css";
 import CustomCalendar from "@/components/home/CustomCalendar";
@@ -8,7 +8,7 @@ import UpcomingReservations from "@/components/home/UpcomingReservations";
 import SelectStudents from "@/components/home/SelectStudents";
 
 export default function Home(){
-    const myReservations = ["2026-02-06", "2026-02-07", "2026-02-09", "2026-02-14"];
+    const [myReservations, setMyReservations] = useState([]);
     
     // Data updated to match the screenshot provided
     const userStats = [
@@ -84,6 +84,22 @@ export default function Home(){
     ];
 
     const [reservationsState, setReservationsState] = useState(reservationData);
+
+    useEffect(() => {
+    const fetchReservedDates = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/api/reservations/reserved-dates');
+            const reservedDates = await response.json();
+
+            setMyReservations(Array.isArray(reservedDates) ? reservedDates : []);
+        } catch (error) {
+            console.error("Failed to load reserved dates:", error);
+            setMyReservations([]);
+        }
+    };
+
+        fetchReservedDates();
+    }, []);
 
     const handleCheck = (id) => {
         setReservationsState(prev =>

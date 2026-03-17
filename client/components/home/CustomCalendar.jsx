@@ -2,9 +2,10 @@ import { useState } from "react";
 import styles from "@/styles/Calendar.module.css";
 
 const CustomCalendar = ({ reservedDates = [] }) => {
+    const today = new Date();   
     
-    const [currentYear, setCurrentYear] = useState(2026);
-    const [currentMonth, setCurrentMonth] = useState(1); 
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
 
     // Get the exact number of days in the currently selected month/year
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -81,7 +82,7 @@ const CustomCalendar = ({ reservedDates = [] }) => {
                 ))}
 
                 {calendarSlots.map((slot, index) => {
-                    const isReserved = reservedDates.includes(slot.fullDate);
+                    const isReserved = Array.isArray(reservedDates) && reservedDates.includes(slot.fullDate);
 
                     return (
                         <div

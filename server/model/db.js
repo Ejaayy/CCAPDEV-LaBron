@@ -1,4 +1,10 @@
+require("dotenv").config();
 const mongoose = require("mongoose");
+
+const User = require("../model/User.js");
+const Lab = require("../model/Lab.js");
+const Slot = require("../model/slot.model.js");
+const Reservation = require("../model/reservation.model.js");
 
 async function connectDB() {
   try {
