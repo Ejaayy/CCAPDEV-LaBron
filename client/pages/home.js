@@ -6,6 +6,7 @@ import WeeklyStats from "@/components/home/WeeklyStats";
 import WelcomeUser from "@/components/home/WelcomeUser";
 import UpcomingReservations from "@/components/home/UpcomingReservations";
 import SelectStudents from "@/components/home/SelectStudents";
+import AuthWrapper from "@/components/layout/AuthWrapper";
 
 export default function Home(){
      const [myReservations, setMyReservations] = useState([]);

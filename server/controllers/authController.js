@@ -29,15 +29,15 @@ exports.login = async (req, res) => {
 
         if (user && user.passwordHash === password) {
             req.session.userId = user._id;
+            req.session.role = user.role;
 
             req.session.save((err) => {
-                if (err) {
-                    console.error("Session save error:", err);
-                    return res.status(500).json({ message: "Session initialization failed" });
-                }
+                if (err) return res.status(500).json({ message: "Session failed" });
 
                 return res.status(200).json({
                     message: "Login successful",
+                    role: user.role,
+                    userId: user._id,
                     user: { firstName: user.firstName, lastName: user.lastName }
                 });
             });
