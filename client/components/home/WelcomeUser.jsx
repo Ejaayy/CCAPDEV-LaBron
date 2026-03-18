@@ -2,7 +2,7 @@ import styles from '@/styles/WelcomeUser.module.css';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
-const WelcomeUser = () => {
+const WelcomeUser = ({upcomingCount = 0, availableRooms = 0, availableSlots = 0}) => {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -45,19 +45,19 @@ const WelcomeUser = () => {
                 <div className={styles.analyticsItem}>
                     <img src="/room.png" alt="Rooms" className={styles.analyticsIcon} />
                     <span className={styles.analyticsLabel}>Rooms Available:</span>
-                    <span className={styles.analyticsValue}>8</span>
+                    <span className={styles.analyticsValue}>{availableRooms}</span>
                 </div>
 
                 <div className={styles.analyticsItem}>
-                    <img src="/seat.png" alt="Seats" className={styles.analyticsIcon} />
-                    <span className={styles.analyticsLabel}>Seats Available:</span>
-                    <span className={styles.analyticsValue}>12</span>
+                    <img src="/seat.png" alt="Slots" className={styles.analyticsIcon} />
+                    <span className={styles.analyticsLabel}>Slots Available:</span>
+                    <span className={styles.analyticsValue}>{availableSlots}</span>
                 </div>
 
                 <div className={styles.analyticsItem}>
                     <img src="/upcoming.png" alt="Upcoming Reservations" className={styles.analyticsIcon} />
                     <span className={styles.analyticsLabel}>Upcoming Reservations:</span>
-                    <span className={styles.analyticsValue}>4</span>
+                    <span className={styles.analyticsValue}>{upcomingCount}</span>
                 </div>
             </div>
         </div>

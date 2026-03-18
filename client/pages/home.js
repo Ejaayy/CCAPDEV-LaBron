@@ -11,6 +11,7 @@ export default function Home(){
      const [myReservations, setMyReservations] = useState([]);
      const [reservationsState, setReservationsState] = useState([]);
      const [userStats, setUserStats] = useState([]);
+     const [availableStats, setAvailableStats] = useState({rooms: 0, slots: 0});
 
     // Data for the two quick actions requested
     const quickActions = [
@@ -29,7 +30,7 @@ export default function Home(){
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [reservationsResponse, statsResponse] = await Promise.all([
+                const [reservationsResponse, statsResponse, availableStatsResponse] = await Promise.all([
                     fetch('http://localhost:3001/api/reservations/my-reservations', {
                         method: 'GET',
                         credentials: 'include',
@@ -38,6 +39,13 @@ export default function Home(){
                         }
                     }),
                     fetch('http://localhost:3001/api/reservations/my-stats', {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }),
+                    fetch('http://localhost:3001/api/reservations/available-stats', {
                         method: 'GET',
                         credentials: 'include',
                         headers: {
@@ -81,11 +89,19 @@ export default function Home(){
                 const stats = await statsResponse.json();
                 setUserStats(stats);
 
+                if (availableStatsResponse.ok) {
+                    const availableStatsData = await availableStatsResponse.json();
+                    setAvailableStats({rooms: availableStatsData.roomsAvailable, slots: availableStatsData.slotsAvailable});
+                } else {
+                    console.warn("Failed to fetch availability stats");
+                }
+
             } catch (error) {
                 console.error("Failed to load dashboard data:", error);
                 setMyReservations([]);
                 setReservationsState([]);
                 setUserStats([]);
+                setAvailableStats({rooms: 0, slots: 0});
             }
         };
 
@@ -121,7 +137,11 @@ export default function Home(){
 
                 <div className={styles['right-column']}>
                     <div className={styles['right-container']}>
-                        <WelcomeUser />
+                        <WelcomeUser 
+                            upcomingCount={reservationsState.length}
+                            availableRooms={availableStats.rooms} 
+                            availableSlots={availableStats.slots}
+                        />
                     </div>
 
                     <div className={styles['right-container']}>

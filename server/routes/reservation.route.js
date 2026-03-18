@@ -8,4 +8,6 @@ router.get('/reserved-dates', reservationController.getReservedDates);
 router.get('/my-reservations', reservationController.getMyReservations);
 router.get('/my-stats', reservationController.getMyStats);
 
+router.get('/available-stats', reservationController.getAvailabilityStats);
+
 module.exports = router;

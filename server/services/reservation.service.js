@@ -1,5 +1,6 @@
 const Reservation = require('../model/reservation.model');
-const User = require('../model/User');
+const Lab = require('../model/Lab');
+const Slot = require('../model/slot.model');
 
 exports.createReservation = async (reservationData) => {
     const reservation = new Reservation(reservationData);
@@ -196,4 +197,30 @@ exports.getUserStats = async (userId) => {
             icon: '🖥️' 
         }
     ];
+};
+
+exports.getAvailabilityStats = async () => {
+    const now = new Date();
+    const currentDate = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+    const currentTime = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit' });
+
+    const availableSlots = await Slot.find({
+        isAvailable: true,
+        $or: [
+            { date: { $gt: currentDate } }, 
+            { date: currentDate, endTime: { $gt: currentTime } } 
+        ]
+    });
+    const slotsAvailable = availableSlots.length;
+
+    const availableRoomsSet = new Set();
+
+    availableSlots.forEach(slot => {
+        if (slot.lab) {
+            availableRoomsSet.add(slot.lab.toString());
+        }
+    });
+
+    const roomsAvailable = availableRoomsSet.size;
+    return { roomsAvailable, slotsAvailable };
 };
