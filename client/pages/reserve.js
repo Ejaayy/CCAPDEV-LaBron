@@ -16,6 +16,7 @@ export default function ReservePage(){
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedLabSlot, setSelectedLabSlot] = useState(null);
     const [reserveAnonymously, setReserveAnonymously] = useState(false);
+    const [user, setUser] = useState(null);
     const totalSteps = 3;
 
     // Helper function to calculate display for next 7 days
@@ -96,6 +97,30 @@ export default function ReservePage(){
             fetchSlots();
         }
     }, [selectedDate]); // dependent on date selection
+
+    // for getting user credentials
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+               
+                const response = await fetch('http://localhost:3001/api/auth/me', {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include',
+                });
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    setUser(userData);
+                } else {
+                    // If not logged in, redirect to login page
+                    router.push('/auth/login');
+                }
+            } catch (err) {
+                console.error("Failed to fetch user:", err);
+            }
+        };
+        fetchUser();
+    }, [router]);
     
 
     return(
@@ -206,8 +231,8 @@ export default function ReservePage(){
                                             // creating reservation
                                             const reservationData = {
                                               
-                                                reservedBy: "65f123abc456def789012345", // placeholders
-                                                reservedFor: "65f123abc456def789012345", // placeholders
+                                                reservedBy: user?._id, 
+                                                reservedFor: user?._id, 
                                                 isAnonymous: reserveAnonymously,
 
                                                 // Map selectedSeats array to the schema's slots format
