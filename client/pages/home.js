@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import HomeNavbar from "@/components/layout/HomeNavbar/HomeNavbar";
 import styles from "../components/layout/HomeNavbar/HomeNavbar.module.css";
 import CustomCalendar from "@/components/home/CustomCalendar";
@@ -13,18 +14,21 @@ export default function Home(){
      const [reservationsState, setReservationsState] = useState([]);
      const [userStats, setUserStats] = useState([]);
      const [availableStats, setAvailableStats] = useState({rooms: 0, slots: 0});
+     const router = useRouter();
 
     // Data for the two quick actions requested
     const quickActions = [
         {
             id: 'book',
-            label: 'Book Next Available Seat',
+            label: 'Reserve Next Available Seat',
             icon: '/next_available_seat.png',
+            onClick: () => {router.push('/reserve?autoSelect=true')}
         },
         {
             id: 'edit',
             label: 'Manage Latest Reservation',
-            icon: '/manage_latest.png'
+            icon: '/manage_latest.png',
+            onClick: () => {router.push('/edit-reservations/my-reservations?autoSelect=true')}
         }
     ];
 

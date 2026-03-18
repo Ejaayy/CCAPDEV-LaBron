@@ -36,7 +36,7 @@ const StatsAndActions = ({ stats = [], actions = [] }) => {
             
             <div className={styles['actions-grid']}>
                 {actions.map((action, index) => (
-                    <button key={action.id || index} className={styles['action-button']}>
+                    <button key={action.id || index} className={styles['action-button']} onClick={action.onClick}>
                         <div className={styles['action-icon-wrapper']}>
                             {typeof action.icon === 'string' && action.icon.startsWith('/') ? (
                                 <img
