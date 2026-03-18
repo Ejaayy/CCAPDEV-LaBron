@@ -174,7 +174,7 @@ async function seedDB() {
         await Reservation.insertMany([
         {
             reservedBy: users[0]._id,
-            reservedFor: users[0]._id,
+            reservedFor: users[0]._id, 
             slots: [
             {
                 slot: slots[0]._id,
@@ -186,7 +186,7 @@ async function seedDB() {
         },
         {
             reservedBy: users[1]._id,
-            reservedFor: users[1]._id,
+            reservedFor: users[1]._id, 
             slots: [
             {
                 slot: slots[1]._id,
@@ -197,8 +197,8 @@ async function seedDB() {
             status: "active",
         },
         {
-            reservedBy: users[4]._id,
-            reservedFor: users[2]._id,
+            reservedBy: users[2]._id,
+            reservedFor: users[2]._id, 
             slots: [
             {
                 slot: slots[2]._id,
@@ -210,7 +210,7 @@ async function seedDB() {
         },
         {
             reservedBy: users[3]._id,
-            reservedFor: users[3]._id,
+            reservedFor: users[3]._id, 
             slots: [
             {
                 slot: slots[3]._id,
@@ -218,11 +218,11 @@ async function seedDB() {
             },
             ],
             isAnonymous: false,
-            status: "completed",
+            status: "active", 
         },
         {
             reservedBy: users[4]._id,
-            reservedFor: users[1]._id,
+            reservedFor: users[4]._id,
             slots: [
             {
                 slot: slots[4]._id,
@@ -230,7 +230,7 @@ async function seedDB() {
             },
             ],
             isAnonymous: false,
-            status: "cancelled",
+            status: "active",
         },
         ]);
 

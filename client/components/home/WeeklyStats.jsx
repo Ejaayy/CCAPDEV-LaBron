@@ -15,10 +15,11 @@ const StatsAndActions = ({ stats = [], actions = [] }) => {
                         </div>
                         
                         <div className={styles['stat-info']}>
-                            {/* Logic: Only ID 2 (Unique Labs) is horizontal. Alert (0) and Hours (1) are vertical. */}
                             <div className={stat.id === 2 ? styles['header-horizontal'] : styles['header-vertical']}>
                                 <span className={styles['stat-value']}>{stat.value}</span>
-                                <span className={styles['stat-label']}>{stat.label}</span>
+                                {stat.label && (
+                                    <span className={styles['stat-label']}>{stat.label}</span>
+                                )}
                             </div>
                             
                             {stat.subtext && (

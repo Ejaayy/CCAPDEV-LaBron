@@ -2,37 +2,15 @@ import { useEffect, useState } from "react";
 import HomeNavbar from "@/components/layout/HomeNavbar/HomeNavbar";
 import styles from "../components/layout/HomeNavbar/HomeNavbar.module.css";
 import CustomCalendar from "@/components/home/CustomCalendar";
-import WeeklyStats from "@/components/home/WeeklyStats"; // Updated to handle both stats and actions
+import WeeklyStats from "@/components/home/WeeklyStats"; 
 import WelcomeUser from "@/components/home/WelcomeUser";
 import UpcomingReservations from "@/components/home/UpcomingReservations";
 import SelectStudents from "@/components/home/SelectStudents";
 
 export default function Home(){
-    const [myReservations, setMyReservations] = useState([]);
-    
-    // Data updated to match the screenshot provided
-    const userStats = [
-        { 
-            id: 0, 
-            label: 'Before your latest reservation',
-            value: '15 Minutes',
-            icon: '🔔',
-            isAlert: true // We can use this to apply specific alert styling
-        },
-        {
-            id: 1,
-            label: 'Hours (Lab Time)',
-            value: '14 Hours',
-            icon: '🕒',
-        },
-        {
-            id: 2,
-            label: '(Unique Labs Used)',
-            value: '3',
-            subtext: 'V501, Y403, Br. Andrew',
-            icon: '🖥️',
-        }
-    ];
+     const [myReservations, setMyReservations] = useState([]);
+     const [reservationsState, setReservationsState] = useState([]);
+     const [userStats, setUserStats] = useState([]);
 
     // Data for the two quick actions requested
     const quickActions = [
@@ -48,75 +26,61 @@ export default function Home(){
         }
     ];
 
-    const reservationData = [
-        {
-            id: 1,
-            laboratory: "Yuchengco Computer Lab Y403",
-            seatNumber: "A-12",
-            reservationDate: "Feb 02, 2026",
-            reservationTime: "09:00 AM - 11:00 AM",
-            requestDateTime: "January 25, 2026 02:15 PM"
-        },
-        {
-            id: 2,
-            laboratory: "Gokongwei Computer Lab G403",
-            seatNumber: "C-05",
-            reservationDate: "Feb 07, 2026",
-            reservationTime: "01:30 PM - 03:30 PM",
-            requestDateTime: "January 26, 2026 02:15 PM"
-        },
-        {
-            id: 3,
-            laboratory: "Br. Andrew Computer Lab A1901",
-            seatNumber: "PC-42",
-            reservationDate: "Feb 09, 2026",
-            reservationTime: "10:00 AM - 12:00 PM",
-            requestDateTime: "January 27, 2026 02:15 PM"
-        },
-        {
-            id: 4,
-            laboratory: "Velaso Computer Lab V501",
-            seatNumber: "BR-42",
-            reservationDate: "Feb 14, 2026",
-            reservationTime: "10:00 AM - 12:00 PM",
-            requestDateTime: "January 28, 2026 02:15 PM"
-        }
-    ];
-
-    const [reservationsState, setReservationsState] = useState(reservationData);
-
     useEffect(() => {
-        const fetchReservedDates = async () => {
+        const fetchDashboardData = async () => {
             try {
-                const response = await fetch('http://localhost:3001/api/reservations/my-reserved-dates', {
-                    method: 'GET',
-                    credentials: 'include', 
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+                const [reservationsResponse, statsResponse] = await Promise.all([
+                    fetch('http://localhost:3001/api/reservations/my-reservations', {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }),
+                    fetch('http://localhost:3001/api/reservations/my-stats', {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                ]);
 
-                if (response.status === 401) {
-                    console.warn("User is not logged in. Cannot fetch reserved dates.");
+                if (reservationsResponse.status === 401 || statsResponse.status === 401) {
+                    console.warn("User is not logged in. Cannot fetch dashboard data.");
                     setMyReservations([]);
+                    setReservationsState([]);
+                    setUserStats([]);
                     return;
                 }
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                if (!reservationsResponse.ok) {
+                    throw new Error("Failed to fetch reservations");;
                 }
 
-                const reservedDates = await response.json();
-                console.log("Fetched reserved dates:", reservedDates);
-                setMyReservations(Array.isArray(reservedDates) ? reservedDates : []);
-                
+                if (!statsResponse.ok) {
+                    throw new Error("Failed to fetch user stats");;
+                }
+
+                const reservationObjects = await reservationsResponse.json();
+                setReservationsState(reservationObjects);
+
+                const rawDates = reservationObjects.map(res => res.rawDate).filter(date => date !== null);
+                const uniqueDates = Array.from(new Set(rawDates));
+                setMyReservations(uniqueDates);
+
+                const stats = await statsResponse.json();
+                setUserStats(stats);
+
             } catch (error) {
-                console.error("Failed to load reserved dates:", error);
+                console.error("Failed to load dashboard data:", error);
                 setMyReservations([]);
+                setReservationsState([]);
+                setUserStats([]);
             }
         };
 
-        fetchReservedDates();
+        fetchDashboardData();
     }, []);
 
     const handleCheck = (id) => {
@@ -152,7 +116,7 @@ export default function Home(){
                     </div>
 
                     <div className={styles['right-container']}>
-                        <h4 style={{ margin: "0 0 10px 0", fontSize: '0.95rem' }}>Current Reservations</h4>
+                        <h4 style={{ margin: "0 0 10px 0", fontSize: '0.95rem' }}>Upcoming Reservations</h4>
                         <UpcomingReservations reservations={reservationsState} handleCheck={handleCheck}/>
                     </div>
 

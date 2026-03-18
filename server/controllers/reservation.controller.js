@@ -24,7 +24,7 @@ exports.getReservedDates = async (req, res) => {
     }
 };
 
-exports.getMyReservedDates = async (req, res) => {
+exports.getMyReservations = async (req, res) => {
     try {
         const userId = req.session.userId;
 
@@ -32,9 +32,25 @@ exports.getMyReservedDates = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized: Please log in." });
         }
 
-        const reservedDates = await reservationService.getUserReservedDates(userId);
-        res.status(200).json(reservedDates);
+        const reservations = await reservationService.getUserReservations(userId);
+        res.status(200).json(reservations);
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getMyStats = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized: Please log in." });
+        }
+
+        const stats = await reservationService.getUserStats(userId);
+        res.status(200).json(stats);
+    } catch (error) {
+        console.error("Error fetching user stats:", error);
+        res.status(500).json({ message: "Failed to fetch user stats." });
     }
 };
