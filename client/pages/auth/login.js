@@ -77,14 +77,22 @@ export default function Login() {
             });
 
             const data = await response.json();
+
             if (response.ok) {
-                // Successful login redirects to home
-                router.push('/home');
+                //differentiation sa login
+                console.log(data)
+                console.log(data.role)
+                if (data.role === 'technician') {
+                    router.push('/home-tech');
+                } else {
+                    router.push('/home');
+                }
             } else {
                 alert(data.message || "Invalid credentials.");
             }
         } catch (error) {
             console.error("Login error:", error);
+            alert("Server error. Please try again later.");
         }
     };
 

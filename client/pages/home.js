@@ -6,11 +6,12 @@ import WeeklyStats from "@/components/home/WeeklyStats";
 import WelcomeUser from "@/components/home/WelcomeUser";
 import UpcomingReservations from "@/components/home/UpcomingReservations";
 import SelectStudents from "@/components/home/SelectStudents";
+import AuthWrapper from "@/components/layout/AuthWrapper";
 
 export default function Home(){
-     const [myReservations, setMyReservations] = useState([]);
-     const [reservationsState, setReservationsState] = useState([]);
-     const [userStats, setUserStats] = useState([]);
+    const [myReservations, setMyReservations] = useState([]);
+    const [reservationsState, setReservationsState] = useState([]);
+    const [userStats, setUserStats] = useState([]);
 
     // Data for the two quick actions requested
     const quickActions = [

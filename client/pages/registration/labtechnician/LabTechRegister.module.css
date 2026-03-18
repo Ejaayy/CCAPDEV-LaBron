@@ -122,6 +122,7 @@
   background: #F8F9FA;
   font-size: 15px;
   transition: border-color 0.2s;
+  color: #000;
 }
 
 .field input:focus {
