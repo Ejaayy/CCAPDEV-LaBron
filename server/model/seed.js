@@ -78,31 +78,56 @@ async function seedDB() {
                 name: "Yuchengco Computer Lab Y403",
                 location: "Yuchengco Building 4th Floor",
                 seatCount: 30,
-                seat: ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3", "D1", "D2", "D3", "E1", "E2", "E3", "F1", "F2", "F3", "G1", "G2", "G3", "H1", "H2", "H3", "I1", "I2", "I3", "J1", "J2", "J3"]
+                seats: [
+                    "A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3",
+                    "A4", "A5", "A6", "B4", "B5", "B6", "C4", "C5", "C6",
+                    "A7", "A8", "A9", "B7", "B8", "B9", "C7", "C8", "C9",
+                    "A10", "A11", "A12"
+                ]
             },
             {
                 name: "Gokongwei Computer Lab G203",
                 location: "Gokongwei Building 2nd Floor",
                 seatCount: 30,
-                seat: ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3", "D1", "D2", "D3", "E1", "E2", "E3", "F1", "F2", "F3", "G1", "G2", "G3", "H1", "H2", "H3", "I1", "I2", "I3", "J1", "J2", "J3"]
+                seats: [
+                    "A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3",
+                    "A4", "A5", "A6", "B4", "B5", "B6", "C4", "C5", "C6",
+                    "A7", "A8", "A9", "B7", "B8", "B9", "C7", "C8", "C9",
+                    "A10", "A11", "A12"
+                ]
             },
             {
                 name: "Velasco Computer Lab V305",
                 location: "Velasco Building 3rd Floor",
                 seatCount: 30,
-                seat: ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3", "D1", "D2", "D3", "E1", "E2", "E3", "F1", "F2", "F3", "G1", "G2", "G3", "H1", "H2", "H3", "I1", "I2", "I3", "J1", "J2", "J3"]
+                seats: [
+                    "A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3",
+                    "A4", "A5", "A6", "B4", "B5", "B6", "C4", "C5", "C6",
+                    "A7", "A8", "A9", "B7", "B8", "B9", "C7", "C8", "C9",
+                    "A10", "A11", "A12"
+                ]
             },
             {
                 name: "Br. Andrew Computer Lab A1903",
                 location: "Br. Andrew Building 19th Floor",
                 seatCount: 30,
-                seat: ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3", "D1", "D2", "D3", "E1", "E2", "E3", "F1", "F2", "F3", "G1", "G2", "G3", "H1", "H2", "H3", "I1", "I2", "I3", "J1", "J2", "J3"]
+                seats: [
+                    "A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3",
+                    "A4", "A5", "A6", "B4", "B5", "B6", "C4", "C5", "C6",
+                    "A7", "A8", "A9", "B7", "B8", "B9", "C7", "C8", "C9",
+                    "A10", "A11", "A12"
+                ]
             },
             {
                 name: "Gokongwei Computer Lab G303",
                 location: "Gokongwei Building 3rd Floor",
                 seatCount: 30,
-                seat: ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3", "D1", "D2", "D3", "E1", "E2", "E3", "F1", "F2", "F3", "G1", "G2", "G3", "H1", "H2", "H3", "I1", "I2", "I3", "J1", "J2", "J3"]
+                seats: [
+                    "A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3",
+                    "A4", "A5", "A6", "B4", "B5", "B6", "C4", "C5", "C6",
+                    "A7", "A8", "A9", "B7", "B8", "B9", "C7", "C8", "C9",
+                    "A10", "A11", "A12"
+                ]
             },
         ]);
 
