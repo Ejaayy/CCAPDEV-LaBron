@@ -1,6 +1,5 @@
 import React from 'react';
 import styles from '@/styles/WeeklyStats.module.css';
-import { FiClock, FiUsers, FiEdit2, FiCheckSquare } from 'react-icons/fi'; // Using react-icons
 
 const StatsAndActions = ({ stats = [], actions = [] }) => {
     return (

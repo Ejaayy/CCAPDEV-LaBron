@@ -84,7 +84,11 @@ exports.getUserReservations = async (userId) => {
 };
 
 exports.getUserStats = async (userId) => {
-    const reservations = await Reservation.find({ status: "completed" , reservedFor: userId }).populate({
+    // FIXED: Fetch BOTH active and completed reservations
+    const reservations = await Reservation.find({ 
+        status: { $in: ["active", "completed"] }, 
+        reservedFor: userId 
+    }).populate({
         path: 'slots.slot',
         populate: {
             path: 'lab',
@@ -103,16 +107,19 @@ exports.getUserStats = async (userId) => {
         const labInfo = slotInfo ? slotInfo.lab : null;
 
         if (slotInfo && slotInfo.date && slotInfo.startTime && slotInfo.endTime) {
-            const [startHour, startMinute] = slotInfo.startTime.split(':').map(Number);
-            const [endHour, endMinute] = slotInfo.endTime.split(':').map(Number);
-            totalMinutes += ((endHour * 60 + endMinute) - (startHour * 60 + startMinute));
+            const reservationDateTime = new Date(`${slotInfo.date}T${slotInfo.startTime}:00`);
 
-            if (labInfo) {
-                uniqueLabs.add(labInfo.name);
+            if (res.status === "completed") {
+                const [startHour, startMinute] = slotInfo.startTime.split(':').map(Number);
+                const [endHour, endMinute] = slotInfo.endTime.split(':').map(Number);
+                totalMinutes += ((endHour * 60 + endMinute) - (startHour * 60 + startMinute));
+
+                if (labInfo) {
+                    uniqueLabs.add(labInfo.name);
+                }
             }
 
-            const reservationDateTime = new Date(`${slotInfo.date}T${slotInfo.startTime}:00`);
-            if (reservationDateTime > now) {
+            if (res.status === "active" && reservationDateTime > now) {
                 if (!nextReservationTime || reservationDateTime < nextReservationTime) {
                     nextReservationTime = reservationDateTime;
                 }
@@ -208,7 +215,7 @@ exports.getAvailabilityStats = async () => {
         isAvailable: true,
         $or: [
             { date: { $gt: currentDate } }, 
-            { date: currentDate, endTime: { $gt: currentTime } } 
+            { date: currentDate, endTime: { $gt: currentTime } } // Gets slots for today that haven't ended yet
         ]
     });
     const slotsAvailable = availableSlots.length;
