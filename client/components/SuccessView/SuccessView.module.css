@@ -1,0 +1,102 @@
+.successContainer {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 300px;
+    text-align: center;
+    animation: fadeIn 0.5s ease-out;
+    background: white;
+    border-radius: 20px;
+}
+
+.successIcon {
+    width: 150px;
+    height: 150px;
+    background: #10b981; /* Success Green */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+}
+
+.successTitle {
+    color: black;
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.successSubtitle {
+    color: #000000;
+    margin-bottom: 32px;
+}
+
+.miniSummary {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.titles{
+    font-weight: 500;
+}
+
+.divider {
+    width: 100%;
+    max-width: 400px; 
+    border: 0;
+    height: 1px;
+    margin: 24px 0;
+    background-color: black;
+}
+
+.miniSummary p {
+    display: flex;
+    justify-content: space-between;
+    color: #000000;
+    margin: 8px 0;
+}
+
+.redirectNotice {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+}
+
+.redirectNotice span {
+    color: #3b82f6;
+    font-weight: bold;
+}
+
+.homeButton{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 28px;
+    font-size: 1rem;
+    font-weight: 400;
+    color: black;
+    background: white;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    outline: none;
+}
+
+.homeButton:hover{
+    border-color: var(--accent-blue, #3B82F6);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

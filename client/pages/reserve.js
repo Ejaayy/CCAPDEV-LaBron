@@ -3,12 +3,16 @@ import HomeNavbar from '@/components/layout/HomeNavbar/HomeNavbar';
 import BookingStepper from '@/components/Stepper/Stepper'
 import DateSelector from '@/components/DateSelector/DateSelector';
 import LabSlotSelector from '@/components/LabSlotSelector/LabSlotSelector';
+import SuccessView from "@/components/SuccessView/SuccessView"
 import { useState, useEffect } from 'react';
 import SeatSelector from '@/components/SeatSelector/SeatSelector';
+import { useRouter } from 'next/router';
 
 export default function ReservePage(){
 
-
+    const router = useRouter();
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [countdown, setCountdown] = useState(10);
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedLabSlot, setSelectedLabSlot] = useState(null);
     const [reserveAnonymously, setReserveAnonymously] = useState(false);
@@ -66,6 +70,16 @@ export default function ReservePage(){
         updateDateCounts();
     }, []); 
 
+    // For success page
+    useEffect(() => {
+    if (isSubmitted && countdown > 0) {
+        const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+        return () => clearTimeout(timer);
+    } else if (isSubmitted && countdown === 0) {
+        router.push('/home'); // Redirect to home
+    }
+    }, [isSubmitted, countdown]);
+
 
     useEffect(() => {
         const fetchSlots = async () => {
@@ -94,7 +108,7 @@ export default function ReservePage(){
 
                         
                         <div className={`${ReserveStyles['main-panel']}`}>
-                            
+                            {!isSubmitted ? (
                             <div className={`${ReserveStyles['selection-panel']}`}>
 
                                 {currentStep == 1 && (
@@ -176,7 +190,7 @@ export default function ReservePage(){
                                         if (currentStep > 1) {
                                             setCurrentStep(currentStep - 1);
                                         }else {
-                                            alert("Cancelled booking"); 
+                                            router.push('/home');
                                         }
                                     }}>
                                         Back
@@ -212,7 +226,10 @@ export default function ReservePage(){
 
                                                 if (response.ok) {
                                                     const result = await response.json();
-                                                    alert("Reservation successfully created in the database!");
+
+                                                    // Reservation success
+                                                    setIsSubmitted(true);
+                                                 
                                                 } else {
                                                     const error = await response.json();
                                                     alert(`Error: ${error.message}`);
@@ -223,13 +240,19 @@ export default function ReservePage(){
                                             }
                                         }
                                     }}
-                                     
                                      >
                                         Continue
                                     </div>
                                 </div>
                             </div>
-
+                            ) : (
+                                <SuccessView 
+                                    labName={selectedLabSlot?.lab?.name} 
+                                    date={selectedDate} 
+                                    seats={selectedSeats}
+                                    countdown={countdown}
+                                />
+                            )}
                         </div>
             </div>
         
