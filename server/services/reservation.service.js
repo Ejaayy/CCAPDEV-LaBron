@@ -21,3 +21,18 @@ exports.getReservedDates = async () => {
 
     return Array.from(dateSet);
 };
+
+exports.getUserReservedDates = async (userId) => {
+    const reservations = await Reservation.find({status: "active", reservedFor: userId}).populate("slots.slot", "date");
+    const dateSet = new Set();
+
+    reservations.forEach((reservation) => {
+        reservation.slots.forEach((slotEntry) => {
+            if (slotEntry.slot && slotEntry.slot.date) {
+                dateSet.add(slotEntry.slot.date);
+            }
+        });
+    });
+
+    return Array.from(dateSet);
+};

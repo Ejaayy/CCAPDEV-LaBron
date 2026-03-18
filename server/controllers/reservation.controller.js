@@ -23,3 +23,18 @@ exports.getReservedDates = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.getMyReservedDates = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized: Please log in." });
+        }
+
+        const reservedDates = await reservationService.getUserReservedDates(userId);
+        res.status(200).json(reservedDates);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

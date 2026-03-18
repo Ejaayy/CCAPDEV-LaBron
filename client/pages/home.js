@@ -86,17 +86,35 @@ export default function Home(){
     const [reservationsState, setReservationsState] = useState(reservationData);
 
     useEffect(() => {
-    const fetchReservedDates = async () => {
-        try {
-            const response = await fetch('http://localhost:3001/api/reservations/reserved-dates');
-            const reservedDates = await response.json();
+        const fetchReservedDates = async () => {
+            try {
+                const response = await fetch('http://localhost:3001/api/reservations/my-reserved-dates', {
+                    method: 'GET',
+                    credentials: 'include', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-            setMyReservations(Array.isArray(reservedDates) ? reservedDates : []);
-        } catch (error) {
-            console.error("Failed to load reserved dates:", error);
-            setMyReservations([]);
-        }
-    };
+                if (response.status === 401) {
+                    console.warn("User is not logged in. Cannot fetch reserved dates.");
+                    setMyReservations([]);
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reservedDates = await response.json();
+                console.log("Fetched reserved dates:", reservedDates);
+                setMyReservations(Array.isArray(reservedDates) ? reservedDates : []);
+                
+            } catch (error) {
+                console.error("Failed to load reserved dates:", error);
+                setMyReservations([]);
+            }
+        };
 
         fetchReservedDates();
     }, []);
