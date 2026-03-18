@@ -4,6 +4,13 @@ import styles from '@/styles/Upcoming.module.css';
 const UpcomingReservations = ({ reservations = [], handleCheck }) => {
     const displayReservations = reservations || [];
 
+    const formatReservationDate = (dateString) => {
+        if (!dateString) return "N/A";
+        const [year, month, day] = dateString.split('-');
+        const date = new Date(year, month - 1, day);
+        return date.toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' });
+    };
+
     return (
         <div className={styles['res-scroll-container']}>
             {displayReservations.map((res, index) => (
@@ -28,7 +35,7 @@ const UpcomingReservations = ({ reservations = [], handleCheck }) => {
                     </div>
 
                     <div className={styles['res-time-section']}>
-                        <div className={styles['res-date-text']}>{res.reservationDate}</div>
+                        <div className={styles['res-date-text']}>{formatReservationDate(res.rawDate)}</div>
                         <div className={styles['res-time-text']}>{res.reservationTime}</div>
                     </div>
                 </div>

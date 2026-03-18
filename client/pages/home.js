@@ -63,6 +63,15 @@ export default function Home(){
                 }
 
                 const reservationObjects = await reservationsResponse.json();
+                reservationObjects.sort((a, b) => {
+                    const getTimestamp = (dateStr, timeStr) => {
+                        if (!dateStr || !timeStr || timeStr === "N/A") return Infinity; 
+                        const startTime = timeStr.split(' - ')[0]; 
+                        return new Date(`${dateStr} ${startTime}`).getTime();
+                    };
+
+                    return getTimestamp(a.rawDate, a.reservationTime) - getTimestamp(b.rawDate, b.reservationTime);
+                });
                 setReservationsState(reservationObjects);
 
                 const rawDates = reservationObjects.map(res => res.rawDate).filter(date => date !== null);

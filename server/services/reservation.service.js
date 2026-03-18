@@ -32,7 +32,7 @@ const formatTime12h = (time24) => {
 };
 
 exports.getUserReservations = async (userId) => {
-    const reservations = await Reservation.find({ status: { $in: ["active", "completed"] }, reservedFor: userId }).populate(
+    const reservations = await Reservation.find({ status: "active", reservedFor: userId }).populate(
         {path: 'slots.slot',
         populate: {
             path: 'lab',
@@ -40,7 +40,7 @@ exports.getUserReservations = async (userId) => {
         }
     });
 
-    return reservations.map(res => {
+    const formattedReservations = reservations.map(res => {
         const firstSlotEntry = res.slots[0]; 
         const slotInfo = firstSlotEntry ? firstSlotEntry.slot : null;
         const labInfo = slotInfo ? slotInfo.lab : null;
@@ -54,10 +54,17 @@ exports.getUserReservations = async (userId) => {
         }).replace(' at ', ' '); 
 
         let resDateFormatted = "N/A";
+
+        let sortTimeStamp = 0;
+
         if (slotInfo && slotInfo.date) {
             const [year, month, day] = slotInfo.date.split('-');
             const d = new Date(year, month - 1, day);
             resDateFormatted = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+
+            if (slotInfo.startTime) {
+                sortTimestamp = new Date(`${slotInfo.date}T${slotInfo.startTime}:00`).getTime();
+            }
         }
 
         return {
@@ -66,9 +73,13 @@ exports.getUserReservations = async (userId) => {
             seatNumber: combinedSeats || "N/A", 
             reservationTime: slotInfo ? `${formatTime12h(slotInfo.startTime)} - ${formatTime12h(slotInfo.endTime)}` : "N/A",
             requestDateTime: reqDateFormatted,
-            rawDate: slotInfo ? slotInfo.date : null 
-        };
+            rawDate: slotInfo ? slotInfo.date : null ,
+            _sortTimestamp: sortTimeStamp
+        };  
     });
+    formattedReservations.sort((a, b) => a._sortTimestamp - b._sortTimestamp);
+    formattedReservations.forEach(res => delete res._sortTimestamp);
+    return formattedReservations;
 };
 
 exports.getUserStats = async (userId) => {
