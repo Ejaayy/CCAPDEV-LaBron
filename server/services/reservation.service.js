@@ -1,7 +1,7 @@
 const Reservation = require('../model/reservation.model');
 const User = require('../model/User');
 
-exports.create = async (reservationData) => {
+exports.createReservation = async (reservationData) => {
     const reservation = new Reservation(reservationData);
     return await reservation.save();
 };

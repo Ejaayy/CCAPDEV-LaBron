@@ -23,10 +23,7 @@ export default function SeatSelector({ onSelect, selectedSlotId, labData }) {
           if (!selectedSlotId) return;
           try {
             const response = await fetch(`http://localhost:3001/api/slots/${selectedSlotId}/occupancy`);
-           
             const data = await response.json();
-
-             console.log(data);
             setOccupiedSeats(data); //format: ["A1", "B3"]
           } catch (error) {
             console.error("Failed to fetch seat occupancy:", error);
