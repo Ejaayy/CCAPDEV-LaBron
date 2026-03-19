@@ -4,11 +4,17 @@ const Lab = require("../model/Lab");
 function generateSeats(seatCount, seatsPerRow = 3) {
   const rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const seats = [];
+  let rowIndex = 0;
+
   for (let i = 0; i < seatCount; i++) {
-    const row = rows[Math.floor(i / seatsPerRow)];
-    const number = (i % seatsPerRow) + 1;
-    seats.push(`${row}${number}`);
+    const colIndex = (i % seatsPerRow) + 1;       // 1,2,3 repeated
+    const currentRow = Math.floor(i / seatsPerRow); // 0,0,0 then 1,1,1
+    if (currentRow >= rows.length) {
+      throw new Error("Too many seats for the available row letters!");
+    }
+    seats.push(`${rows[currentRow]}${colIndex}`);
   }
+
   return seats;
 }
 
@@ -24,7 +30,7 @@ exports.getAllLabs = async (req, res) => {
 
 exports.createLab = async (req, res) => {
   try {
-    const { name, location, seatCount, seats } = req.body;
+    const { name, location, seatCount } = req.body;
 
     if (!name || !seatCount) {
       return res.status(400).json({ message: "Name and seatCount are required" });
@@ -35,11 +41,8 @@ exports.createLab = async (req, res) => {
       return res.status(400).json({ message: "seatCount must be a positive number" });
     }
 
-  let seatsArray = seats;
-  if (!seatsArray || !Array.isArray(seatsArray) || seatsArray.length === 0) {
-    // Generate seats dynamically, 3 seats per row by default
-    seatsArray = generateSeats(seatCountNum, 3);
-  }
+    // Always generate seats properly
+    const seatsArray = generateSeats(seatCountNum, 3);
 
     const lab = new Lab({
       name,
