@@ -35,10 +35,11 @@ exports.createLab = async (req, res) => {
       return res.status(400).json({ message: "seatCount must be a positive number" });
     }
 
-    let seatsArray = seats;
-    if (!seatsArray || !Array.isArray(seatsArray) || seatsArray.length === 0) {
-      seatsArray = Array.from({ length: seatCountNum }, (_, i) => `A${i + 1}`);
-    }
+  let seatsArray = seats;
+  if (!seatsArray || !Array.isArray(seatsArray) || seatsArray.length === 0) {
+    // Generate seats dynamically, 3 seats per row by default
+    seatsArray = generateSeats(seatCountNum, 3);
+  }
 
     const lab = new Lab({
       name,
