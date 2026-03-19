@@ -124,19 +124,40 @@ export default function ReservePage(){
     }, [router]);
 
     useEffect(() => {
-        if (autoSelect === 'true' && availableSlots.length > 0 && !selectedLabSlot) {
+        const autoPickNextSeat = async () => {
+            if (!router.isReady || autoSelect !== 'true' || selectedLabSlot) return;
 
-            const firstOpenSlot = availableSlots[0];
+            try {
+                const overviewResponse = await fetch(`http://localhost:3001/api/slots/overview`);
+                const countsMap = await overviewResponse.json();
 
-            if (firstOpenSlot) {
-                setSelectedLabSlot(firstOpenSlot);
+                const upcomingDays = getNextSevenDays().map(day => day.isoDate);
+                const targetDayObject = countsMap.find(item => item.count > 0 && upcomingDays.includes(item.date));
 
-                setCurrentStep(2);
+                const targetDate = targetDayObject ? targetDayObject.date : selectedDate
+
+                setSelectedDate(targetDate);
+
+                const slotsResponse = await fetch(`http://localhost:3001/api/slots?date=${targetDate}`)
+                const slotsData = await slotsResponse.json();
+
+                const firstOpenSlot = slotsData.find(slot => slot.isAvailable !== false) || slotsData[0];
+
+                if (firstOpenSlot) {
+                    setSelectedLabSlot(firstOpenSlot);
+                    setCurrentStep(2);
+                } else{
+                    alert("No available slots found in the next 7 days.");
+                }
 
                 router.replace('/reserve', undefined, { shallow: true });
+            } catch (error) {
+                console.error("Auto-selection failed:", error);
             }
-        }
-    }, [autoSelect, availableSlots, selectedLabSlot, router]);
+        };
+
+        autoPickNextSeat();
+    }, [router.isReady, autoSelect, router]);
     
     return(
         <>
