@@ -18,6 +18,7 @@ export default function ReservePage(){
     const [reserveAnonymously, setReserveAnonymously] = useState(false);
     const [user, setUser] = useState(null);
     const totalSteps = 3;
+    const { autoSelect } = router.query;
 
     // Helper function to calculate display for next 7 days
     const getNextSevenDays = () => {
@@ -121,8 +122,22 @@ export default function ReservePage(){
         };
         fetchUser();
     }, [router]);
-    
 
+    useEffect(() => {
+        if (autoSelect === 'true' && availableSlots.length > 0 && !selectedLabSlot) {
+
+            const firstOpenSlot = availableSlots[0];
+
+            if (firstOpenSlot) {
+                setSelectedLabSlot(firstOpenSlot);
+
+                setCurrentStep(2);
+
+                router.replace('/reserve', undefined, { shallow: true });
+            }
+        }
+    }, [autoSelect, availableSlots, selectedLabSlot, router]);
+    
     return(
         <>
         
