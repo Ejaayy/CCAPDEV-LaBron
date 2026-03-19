@@ -65,7 +65,7 @@ export default function MyReservations() {
       <HomeNavbar />
 
       <div className={styles.content}>
-        <h1 className={styles.pageTitle}>My Reservations</h1>
+        
 
         <div className={styles.reservationList}>
           {reservations.map((res, i) => (

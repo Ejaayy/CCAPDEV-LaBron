@@ -1,16 +1,14 @@
 /* Reservation Card */
 .card {
-  background-color: #1f2234;
-  border: 1px solid #1e293b;
-  border-radius: 12px;
-  padding: 20px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  background-color: white;
+  border-radius: 16px;
+  border: 2px solid var(--border-light);
+  padding: 1.5rem;
+  box-shadow:
+      0 4px 6px -1px rgba(15, 23, 42, 0.08),
+      0 2px 4px -2px rgba(15, 23, 42, 0.04);
 }
 
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-}
 
 .cardHeader {
   display: flex;
@@ -20,25 +18,27 @@
 }
 
 .roomName {
+  color: black;
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
 }
 
 .status {
+  color: black;
+  border-radius: 8px;
   padding: 4px 12px;
-  border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .confirmed {
-  background-color: #37c7e1;
-  color: #0f172a;
+  background-color: #39a933;
+  color: #ffffff;
 }
 
 .failed {
-  background-color: #f87171;
+  background-color: #e04545;
   color: #ffffff;
 }
 
@@ -56,13 +56,16 @@
 
 .infoRow {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: #4d4d4e;
 }
 
 .label {
+  color: black;
   font-weight: 600;
   margin-right: 6px;
 }
+
+
 
 .participantList {
   display: flex;
@@ -86,7 +89,7 @@
 }
 
 .editBtn {
-  background-color: #3B82F6;
+  background-color: #2c4060;
   color: white;
   padding: 8px 16px;
   border: none;

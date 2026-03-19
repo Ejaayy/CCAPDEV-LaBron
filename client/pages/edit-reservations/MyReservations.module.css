@@ -1,20 +1,26 @@
 .pageWrapper {
-  background-color: #0f172a;
+  background-color: white;
   min-height: 100vh;
   color: white;
 }
 
 .content {
-  padding: 20px 40px;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2rem;
+  gap: 1.5rem;
 }
 
 .pageTitle {
+  background-color: #1F2234;
   font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 30px;
+  padding: 40px 13%;
 }
 
 .reservationList {
+  padding-top: 20px;
+  background-color: white;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
