@@ -70,6 +70,7 @@ exports.getUserReservations = async (userId) => {
 
         return {
             id: res._id.toString(), 
+            status: res.status,
             laboratory: labInfo ? labInfo.name : "Unknown Lab",
             seatNumber: combinedSeats || "N/A", 
             reservationTime: slotInfo ? `${formatTime12h(slotInfo.startTime)} - ${formatTime12h(slotInfo.endTime)}` : "N/A",
