@@ -1,5 +1,18 @@
 const Lab = require("../model/Lab");
 
+//functions needed to generate seat labels
+function generateSeats(seatCount, seatsPerRow = 3) {
+  const rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const seats = [];
+  for (let i = 0; i < seatCount; i++) {
+    const row = rows[Math.floor(i / seatsPerRow)];
+    const number = (i % seatsPerRow) + 1;
+    seats.push(`${row}${number}`);
+  }
+  return seats;
+}
+
+
 exports.getAllLabs = async (req, res) => {
   try {
     const labs = await Lab.find().sort({ location: 1, name: 1 });
