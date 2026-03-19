@@ -28,35 +28,6 @@
     margin-right: 16px;
 }
 
-.res-checkbox-icon {
-    width: 18px;
-    height: 18px;
-    border: 2px solid var(--accent-green);
-    border-radius: 3px;
-    background: transparent;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    display: inline-block;
-    position: relative;
-}
-
-.res-checkbox-icon:checked {
-    background-color: var(--accent-green);
-}
-
-.res-checkbox-icon:checked::after {
-    content: '';
-    position: absolute;
-    left: 4px;
-    top: 0px;
-    width: 5px;
-    height: 10px;
-    border: solid #fff;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
 .res-info-group {
     flex-grow: 1; 
 }

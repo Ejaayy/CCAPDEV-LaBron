@@ -10,6 +10,7 @@ const authRoutes = require("./routes/authRoute");
 const reservationRoutes = require("./routes/reservation.route");
 const slotRoutes = require('./routes/slot.route');
 const labRoutes = require('./routes/lab.route');
+const userRoutes = require('./routes/userRoute');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/slots', slotRoutes);
 app.use('/api/labs', labRoutes);
+app.use('/api/users', userRoutes);
 
 connectDB().then(() => {
   const PORT = process.env.PORT || 3001;

@@ -10,6 +10,7 @@ import SelectStudents from "@/components/home/SelectStudents";
 import AuthWrapper from "@/components/layout/AuthWrapper";
 
 export default function Home(){
+     const [currentUser, setCurrentUser] = useState(null);
      const [myReservations, setMyReservations] = useState([]);
      const [reservationsState, setReservationsState] = useState([]);
      const [userStats, setUserStats] = useState([]);
@@ -20,7 +21,7 @@ export default function Home(){
     const quickActions = [
         {
             id: 'book',
-            label: 'Reserve Next Available Seat',
+            label: 'Reserve Next Available Slot',
             icon: '/next_available_seat.png',
             onClick: () => {router.push('/reserve?autoSelect=true')}
         },
@@ -35,7 +36,14 @@ export default function Home(){
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [reservationsResponse, statsResponse, availableStatsResponse] = await Promise.all([
+                const [userResponse, reservationsResponse, statsResponse, availableStatsResponse] = await Promise.all([
+                    fetch('http://localhost:3001/api/auth/me', {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }), 
                     fetch('http://localhost:3001/api/reservations/my-reservations', {
                         method: 'GET',
                         credentials: 'include',
@@ -58,7 +66,10 @@ export default function Home(){
                         }
                     })
                 ]);
-
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    setCurrentUser(userData);
+                }
                 if (reservationsResponse.status === 401 || statsResponse.status === 401) {
                     console.warn("User is not logged in. Cannot fetch dashboard data.");
                     setMyReservations([]);
@@ -103,6 +114,7 @@ export default function Home(){
 
             } catch (error) {
                 console.error("Failed to load dashboard data:", error);
+                setCurrentUser(null);
                 setMyReservations([]);
                 setReservationsState([]);
                 setUserStats([]);
@@ -112,14 +124,6 @@ export default function Home(){
 
         fetchDashboardData();
     }, []);
-
-    const handleCheck = (id) => {
-        setReservationsState(prev =>
-            prev.map(res =>
-                res.id === id ? {...res, isChecked: !res.isChecked} : res
-            )
-        );
-    };
 
     return(
         <div className={styles.homePage}>
@@ -142,7 +146,7 @@ export default function Home(){
 
                 <div className={styles['right-column']}>
                     <div className={styles['right-container']}>
-                        <WelcomeUser 
+                        <WelcomeUser  
                             upcomingCount={reservationsState.length}
                             availableRooms={availableStats.rooms} 
                             availableSlots={availableStats.slots}
@@ -151,11 +155,11 @@ export default function Home(){
 
                     <div className={styles['right-container']}>
                         <h4 style={{ margin: "0 0 10px 0", fontSize: '0.95rem' }}>Upcoming Reservations</h4>
-                        <UpcomingReservations reservations={reservationsState} handleCheck={handleCheck}/>
+                        <UpcomingReservations reservations={reservationsState} />
                     </div>
 
                     <div className={styles['right-container']}>
-                        <SelectStudents />
+                        <SelectStudents currentUserId={currentUser?._id} />
                     </div>
                 </div>
             </div>

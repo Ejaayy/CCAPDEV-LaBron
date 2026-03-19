@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from '@/styles/Upcoming.module.css';
 
-const UpcomingReservations = ({ reservations = [], handleCheck }) => {
+const UpcomingReservations = ({ reservations = []}) => {
     const displayReservations = reservations || [];
 
     const formatReservationDate = (dateString) => {
@@ -16,12 +16,6 @@ const UpcomingReservations = ({ reservations = [], handleCheck }) => {
             {displayReservations.map((res, index) => (
                 <div key={res.id || index} className={styles['res-card']}>
                     <div className={styles['res-icon-section']}>
-                        <input
-                            type="checkbox"
-                            className={styles['res-checkbox-icon']}
-                            checked={res.isChecked || false} 
-                            onChange={() => handleCheck(res.id)} 
-                        />
                     <span className={styles['res-calendar-icon']}>📅</span>
                     </div>
 

@@ -232,3 +232,4 @@ exports.getAvailabilityStats = async () => {
     const roomsAvailable = availableRoomsSet.size;
     return { roomsAvailable, slotsAvailable };
 };
+

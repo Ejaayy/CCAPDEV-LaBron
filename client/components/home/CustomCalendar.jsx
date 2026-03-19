@@ -72,7 +72,7 @@ const CustomCalendar = ({ reservedDates = [] }) => {
                             <option key={y} value={y}>{y}</option>
                         ))}
                     </select>
-                </div>
+                </div>  
                 <button className={styles.navBtn} onClick={handleNextMonth}>&gt;</button>
             </div>
 
