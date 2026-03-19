@@ -18,12 +18,37 @@
   padding: 40px 13%;
 }
 
+.manageLatestTitle {
+  color: #1F2234;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
 .reservationList {
   padding-top: 20px;
   background-color: white;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
+}
+
+.highlightedCard {
+  border-radius: 12px;
+  animation: pulseGlow 2s infinite;
+  outline: 2px solid var(--accent-blue, #3B82F6);
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
 }
 
 @media (max-width: 900px) {
