@@ -126,6 +126,7 @@ export default function Home(){
     }, []);
 
     return(
+        <AuthWrapper>
         <div className={styles.homePage}>
             <HomeNavbar/>
 
@@ -164,5 +165,6 @@ export default function Home(){
                 </div>
             </div>
         </div>
+        </AuthWrapper>
     )
 }
