@@ -9,5 +9,6 @@ router.get('/my-reservations', reservationController.getMyReservations);
 router.get('/my-stats', reservationController.getMyStats);
 
 router.get('/available-stats', reservationController.getAvailabilityStats);
+router.get('/user/:id', reservationController.getUserPublicReservations);
 
 module.exports = router;

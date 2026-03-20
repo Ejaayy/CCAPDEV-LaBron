@@ -1,4 +1,5 @@
 const reservationService = require('../services/reservation.service');
+const Reservation = require('../model/reservation.model');
 
 exports.createReservation = async (req, res) => {
     try {
@@ -36,6 +37,43 @@ exports.getMyReservations = async (req, res) => {
         res.status(200).json(reservations);
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getUserPublicReservations = async (req, res) => {
+    try {
+        const targetUserId = req.params.id;
+
+        // reservations with privacy
+        const reservations = await Reservation.find({
+            reservedFor: targetUserId,
+            isAnonymous: false // hides anonymous bookings
+        }).populate({
+            path: 'slots.slot',
+            populate: { path: 'lab' }
+        }).sort({ createdAt: -1 });
+
+        // formatting
+        const formattedReservations = reservations.flatMap(reservation => {
+            return reservation.slots.map(s => {
+                const slotData = s.slot;
+                const labData = slotData?.lab;
+
+                return {
+                    id: reservation._id,
+                    status: reservation.status,
+                    laboratory: labData ? labData.name : "Unknown Lab",
+                    seatNumber: s.seat,
+                    reservationTime: slotData ? `${slotData.startTime} - ${slotData.endTime}` : "N/A",
+                    rawDate: slotData ? slotData.date : null
+                };
+            });
+        });
+
+        res.status(200).json(formattedReservations);
+    } catch (error) {
+        console.error("Error fetching public reservations:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 };
 

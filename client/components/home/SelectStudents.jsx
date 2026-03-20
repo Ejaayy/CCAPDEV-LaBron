@@ -80,7 +80,7 @@ const SelectStudent = ({ currentUserId }) => {
                          )}
                       </div>
                       <p className={styles.studentName}>{student.firstName} {student.lastName}</p>
-                      <Link href={`/account?studentId=${student._id}`} className={styles.viewProfileLink}>
+                      <Link href={`/viewProfile?userId=${student._id}`} className={styles.viewProfileLink}>
                         View Profile
                       </Link>
                     </div>

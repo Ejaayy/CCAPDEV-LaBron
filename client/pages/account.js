@@ -6,6 +6,7 @@ import AuthWrapper from "@/components/layout/AuthWrapper";
 export default function Account() {
     const [userData, setUserData] = useState(null);
     const [userReservations, setUserReservations] = useState([]);
+    const [reservations, setReservations] = useState([]);
     const scrollRef = useRef(null);
 
     const scroll = (direction) => {
@@ -16,14 +17,6 @@ export default function Account() {
             current.scrollLeft += 200;
         }
     };
-
-    const reservations = [
-        { lab: "G304B", date: "Feb 12", status: "active" },
-        { lab: "G302A", date: "Feb 10", status: "expired" },
-        { lab: "G304A", date: "Feb 5", status: "expired" },
-        { lab: "G302B", date: "Jan 29", status: "expired" },
-        { lab: "VL101", date: "Dec 4", status: "expired" },
-    ];
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -46,7 +39,51 @@ export default function Account() {
         fetchProfileData();
     }, []);
 
+    useEffect(() => {
+        const fetchMyReservations = async () => {
+            try {
+                // Ensure this URL matches your actual backend route!
+                const response = await fetch('http://localhost:3001/api/reservations/my-reservations', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include' // CRITICAL: This sends your session cookie so the backend knows it's you
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setReservations(data);
+                } else {
+                    console.error("Failed to fetch reservations");
+                }
+            } catch (error) {
+                console.error("Error connecting to server:", error);
+            }
+        };
+
+        fetchMyReservations();
+    }, []); // The empty array ensures this only runs once when the page loads
+
     if (!userData) return <div>Loading Profile...</div>;
+
+    const getDynamicStatus = (res) => {
+        // check status
+        if (res.status !== 'active') return res.status;
+
+        // check if time has passed
+        if (res.rawDate && res.reservationTime && res.reservationTime !== "N/A") {
+            // get end time
+            const endTimeStr = res.reservationTime.split(' - ')[1];
+            const endDateTime = new Date(`${res.rawDate} ${endTimeStr}`);
+
+            // check if end time has passed
+            if (new Date() > endDateTime) {
+                return "expired";
+            }
+        }
+        return "active";
+    };
 
     return (
         <AuthWrapper>
@@ -74,7 +111,7 @@ export default function Account() {
                             </div>
                             <div className={AccountStyles['field-group']}>
                                 <label>ID num</label>
-                                <input type="text" className={AccountStyles['custom-input']} value={userData.id} />
+                                <input type="text" className={AccountStyles['custom-input']} value={userData.idNumber} readOnly />
                             </div>
                             <div className={AccountStyles['field-group']}>
                                 <label>email</label>
@@ -97,17 +134,23 @@ export default function Account() {
                 </div>
 
                 <div className={AccountStyles['sub-panel']}>
-                    <h3 className={AccountStyles['activity-title']}>Reservations</h3>
+                    <h3 className={AccountStyles['activity-title']}>My Reservations</h3>
                     <div className={AccountStyles['carousel-container']}>
                         <button className={AccountStyles['nav-btn']} onClick={() => scroll('left')}>&#8249;</button>
                         <div className={AccountStyles['reservation-track']} ref={scrollRef}>
-                            {reservations.map((res, index) => (
-                                <div key={index} className={`${AccountStyles['res-box']} ${AccountStyles[res.status]}`}>
-                                    <h4>{res.lab}</h4>
-                                    <p>{res.date}</p>
-                                    <span className={AccountStyles['status-tag']}>{res.status}</span>
-                                </div>
-                            ))}
+                            {reservations.length > 0 ? reservations.map((res, index) => {
+                                const currentStatus = getDynamicStatus(res); // Calculate status once per item
+
+                                return (
+                                    <div key={index} className={`${AccountStyles['res-box']} ${AccountStyles[currentStatus]}`}>
+                                        <h4>{res.laboratory || "Unknown Lab"}</h4>
+                                        <p>{res.rawDate}</p>
+                                        <p>{res.reservationTime}</p>
+                                        <p className={AccountStyles['seat-text']}>Seat: {res.seatNumber}</p>
+                                        <span className={AccountStyles['status-tag']}>{currentStatus}</span>
+                                    </div>
+                                );
+                            }) : <p>No reservations found.</p>}
                         </div>
                         <button className={AccountStyles['nav-btn']} onClick={() => scroll('right')}>&#8250;</button>
                     </div>
@@ -129,7 +172,7 @@ export default function Account() {
                             <img src="profilePic.jpg" alt="Profile" className={AccountStyles['activity-avatar']} />
                             <div className={AccountStyles['activity-text']}>
                                 <span className={AccountStyles['user-link']}>EJ Paingers</span> posted a status:
-                                <p className={AccountStyles['status-quote']}>"ANLALA NUNG STALGCM EXAM MAN"</p>
+                                <p className={AccountStyles['status-quote']}>&#34;ANLALA NUNG STALGCM EXAM MAN&#34;</p>
                                 <div className={AccountStyles['activity-date']}>Feb 11 @ 11:02am</div>
                             </div>
                         </div>

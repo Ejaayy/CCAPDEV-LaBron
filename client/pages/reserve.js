@@ -33,7 +33,8 @@ export default function ReservePage(){
             days.push({
             displayDay: dayNames[d.getDay()],
             displayDate: `${d.getDate().toString().padStart(2, '0')} ${monthNames[d.getMonth()]}`,
-            isoDate: d.toISOString().split('T')[0], // example format:  "2026-03-11"
+                //changed timezone
+            isoDate: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`, // example format:  "2026-03-11"
             isAvailable: true,
             labs: 4
             });
@@ -88,6 +89,7 @@ export default function ReservePage(){
             try {
                 const response = await fetch(`http://localhost:3001/api/slots?date=${selectedDate}`);
                 const data = await response.json();
+                console.log("SLOT DATA FROM SERVER:", data);
                 setAvailableSlots(data);
             } catch (error) {
                 console.error("Failed to fetch slots:", error);
