@@ -1,8 +1,11 @@
-import { useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import HomeNavbar from "@/components/layout/HomeNavbar/HomeNavbar";
 import AccountStyles from "@/styles/AccountPage.module.css";
+import AuthWrapper from "@/components/layout/AuthWrapper";
 
 export default function Account() {
+    const [userData, setUserData] = useState(null);
+    const [userReservations, setUserReservations] = useState([]);
     const scrollRef = useRef(null);
 
     const scroll = (direction) => {
@@ -22,7 +25,31 @@ export default function Account() {
         { lab: "VL101", date: "Dec 4", status: "expired" },
     ];
 
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            try {
+                const userRes = await fetch('http://localhost:3001/api/auth/me', {
+                    credentials: 'include'
+                });
+                const userJson = await userRes.json();
+                setUserData(userJson);
+
+                const resRes = await fetch('http://localhost:3001/api/reservations/my-reservations', {
+                    credentials: 'include'
+                });
+                const resJson = await resRes.json();
+                setUserReservations(resJson);
+            } catch (err) {
+                console.error("Failed to fetch profile data", err);
+            }
+        };
+        fetchProfileData();
+    }, []);
+
+    if (!userData) return <div>Loading Profile...</div>;
+
     return (
+        <AuthWrapper>
         <div className={AccountStyles['page-container']}>
             <HomeNavbar />
             <div className={AccountStyles['cover-container']}>
@@ -37,21 +64,21 @@ export default function Account() {
                             <div className={AccountStyles['default-avatar']}>
                                 <img src="profilePic.jpg" alt="Profile" className={AccountStyles['profile-img']} />
                             </div>
-                            <h2 className={AccountStyles['profile-name']}>EJ Paingers</h2>
+                            <h2 className={AccountStyles['profile-name']}>{userData.firstName} {userData.lastName}</h2>
                         </div>
 
                         <div className={AccountStyles['info-fields']}>
                             <div className={AccountStyles['field-group']}>
                                 <label>Name</label>
-                                <input type="text" className={AccountStyles['custom-input']} defaultValue="EJ Paingers" />
+                                <input type="text" className={AccountStyles['custom-input']} value={`${userData.firstName} ${userData.lastName}`} readOnly />
                             </div>
                             <div className={AccountStyles['field-group']}>
                                 <label>ID num</label>
-                                <input type="text" className={AccountStyles['custom-input']} defaultValue="12345678" />
+                                <input type="text" className={AccountStyles['custom-input']} value={userData.id} />
                             </div>
                             <div className={AccountStyles['field-group']}>
                                 <label>email</label>
-                                <input type="email" className={AccountStyles['custom-input']} defaultValue="ejaygoat@dlsu.edu.ph" />
+                                <input type="email" className={AccountStyles['custom-input']} value={userData.email} readOnly />
                             </div>
                         </div>
                     </div>
@@ -146,5 +173,6 @@ export default function Account() {
                 </div>
             </div>
         </div>
+        </AuthWrapper>
     );
 }
