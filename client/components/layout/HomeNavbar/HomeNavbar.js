@@ -1,11 +1,34 @@
-import { useState } from 'react';
+import { useEffect, useState } from "react";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import styles from './HomeNavbar.module.css';
 
+
 export default function HomeNavbar({ style, className, ...rest }) {
+
+
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("http://localhost:3001/api/auth/me", {
+          credentials: "include",
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -60,6 +83,9 @@ export default function HomeNavbar({ style, className, ...rest }) {
                 Reserve
               </Link>
             </li>
+            
+            {/* Only show this if user is a damn technician */}
+            {user?.role === "technician" && (
             <li className="nav-item">
               <Link 
                 href="/edit-reservations/manage-reservations" 
@@ -68,6 +94,10 @@ export default function HomeNavbar({ style, className, ...rest }) {
                 Manage Reservations
               </Link>
             </li>
+            )}
+            
+            {/* Only show this if user is a damn student */}  
+            {user?.role === "student" && (
             <li className="nav-item">
               <Link 
                 href="/edit-reservations/my-reservations" 
@@ -76,6 +106,7 @@ export default function HomeNavbar({ style, className, ...rest }) {
                 My Reservations
               </Link>
             </li>
+            )}
 
             {/* Account Dropdown */}
             <li className="nav-item dropdown">
