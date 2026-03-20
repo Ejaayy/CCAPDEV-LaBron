@@ -1,0 +1,83 @@
+.res-scroll-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 285px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.res-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.res-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.res-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+}
+
+.res-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+.res-card {
+  display: flex;
+  align-items: center;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  gap: 16px;
+  transition: all 0.2s ease;
+  cursor: pointer; 
+}
+
+.res-card:hover {
+  background-color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+}
+
+.res-icon-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e0f2fe;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+}
+
+.res-calendar-icon {
+  font-size: 1.5rem;
+}
+
+.res-info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.res-title {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 1.05rem;
+}
+
+.res-meta-header {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  color: #94a3b8;
+  padding: 20px 0;
+  font-style: italic;
+}

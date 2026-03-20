@@ -71,7 +71,12 @@ export default function ManageReservations() {
     checkAccess();
   }, [router]);
 
-  // ✅ useCallback hooks before useEffect hooks that use them
+  useEffect(() => {
+    if (router.isReady && router.query.building) {
+      setSearch(router.query.building);
+    }
+  }, [router.isReady, router.query.building]);
+
   const fetchLabs = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/labs`, { credentials: "include" });
@@ -100,7 +105,6 @@ export default function ManageReservations() {
     }
   }, [date]);
 
-  // ✅ useEffect hooks after the callbacks they depend on
   useEffect(() => {
     if (!user) return;
     fetchLabs();
