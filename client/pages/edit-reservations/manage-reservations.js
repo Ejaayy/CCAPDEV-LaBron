@@ -6,6 +6,7 @@ import RoomSlotsPanel from "@/components/edit-reservations/RoomSlotsPanel/RoomSl
 import Panel from "@/components/edit-reservations/Panel/Panel";
 import AddRoomModal from "@/components/edit-reservations/AddRoomModal/AddRoomModal";
 import styles from "./ManageReservations.module.css";
+import { useRouter } from "next/router";
 
 const API_BASE = "http://localhost:3001/api";
 
@@ -25,6 +26,7 @@ async function safeJson(res) {
 }
 
 export default function ManageReservations() {
+  // useState hooks first
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [search, setSearch] = useState("");
   const [labs, setLabs] = useState([]);
@@ -32,10 +34,47 @@ export default function ManageReservations() {
   const [selectedLab, setSelectedLab] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [addRoomModalOpen, setAddRoomModalOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  const router = useRouter();
+
+  // auth check effect
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const res = await fetch("http://localhost:3001/api/auth/me", {
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          router.push("/auth/login");
+          return;
+        }
+
+        const data = await res.json();
+
+        if (data.role !== "technician") {
+          router.push("/home");
+          return;
+        }
+
+        setUser(data);
+      } catch (err) {
+        console.error(err);
+        router.push("/auth/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAccess();
+  }, [router]);
+
+  // ✅ useCallback hooks before useEffect hooks that use them
   const fetchLabs = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/labs`);
+      const res = await fetch(`${API_BASE}/labs`, { credentials: "include" });
       const data = await safeJson(res);
       setLabs(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -50,7 +89,9 @@ export default function ManageReservations() {
       return;
     }
     try {
-      const res = await fetch(`${API_BASE}/slots?date=${date}&all=true`);
+      const res = await fetch(`${API_BASE}/slots?date=${date}&all=true`, {
+        credentials: "include",
+      });
       const data = await safeJson(res);
       setSlots(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -59,14 +100,22 @@ export default function ManageReservations() {
     }
   }, [date]);
 
+  // ✅ useEffect hooks after the callbacks they depend on
   useEffect(() => {
+    if (!user) return;
     fetchLabs();
-  }, [fetchLabs]);
+  }, [fetchLabs, user]);
 
   useEffect(() => {
+    if (!user) return;
     fetchSlots();
-  }, [fetchSlots]);
+  }, [fetchSlots, user]);
 
+  // ✅ Early returns AFTER all hooks
+  if (loading) return null;
+  if (!user) return null;
+
+  // Derived values
   const filteredLabs = labs.filter((lab) => {
     const q = search.toLowerCase();
     return (
@@ -78,6 +127,7 @@ export default function ManageReservations() {
   const slotsForSelectedLab =
     selectedLab && slots.filter((s) => s.lab?._id === selectedLab._id);
 
+  // Handlers
   const handleLabClick = (lab) => {
     setSelectedLab(lab);
     setSelectedSlot(null);
@@ -89,7 +139,8 @@ export default function ManageReservations() {
 
     try {
       const res = await fetch(
-        `${API_BASE}/slots/${slot._id}/occupancy?details=true`
+        `${API_BASE}/slots/${slot._id}/occupancy?details=true`,
+        { credentials: "include" }
       );
       const data = await safeJson(res);
       const students = data.reservations || [];
@@ -122,6 +173,7 @@ export default function ManageReservations() {
       const res = await fetch(`${API_BASE}/slots`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           lab: selectedLab._id,
           date,
@@ -146,6 +198,7 @@ export default function ManageReservations() {
       const res = await fetch(`${API_BASE}/labs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(labData),
       });
       if (res.ok) {
@@ -169,6 +222,7 @@ export default function ManageReservations() {
       const res = await fetch(`${API_BASE}/slots/${slot._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ isAvailable: newAvailable }),
       });
       if (res.ok) {
