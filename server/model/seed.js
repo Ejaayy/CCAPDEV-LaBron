@@ -36,6 +36,7 @@ async function seedDB() {
                 role: "student",
                 firstName: "Alice",
                 lastName: "Guo",
+                idNumber: "20210001",
                 profilePicturePath: "/images/alice.png"
             },
             {
@@ -44,6 +45,7 @@ async function seedDB() {
                 role: "student",
                 firstName: "Bong",
                 lastName: "Go",
+                idNumber: "20210002",
                 profilePicturePath: "/images/bong.png"
             },
             {
@@ -52,6 +54,7 @@ async function seedDB() {
                 role: "student",
                 firstName: "Sarah",
                 lastName: "Duterte",
+                idNumber: "20210003",
                 profilePicturePath: "/images/sarah.png"
             },
             {
@@ -60,6 +63,7 @@ async function seedDB() {
                 role: "student",
                 firstName: "Bato",
                 lastName: "Dela Rosa",
+                idNumber: "20210004",
                 profilePicturePath: "/images/bato.png"
             },
             {
@@ -68,6 +72,7 @@ async function seedDB() {
                 role: "student",
                 firstName: "Robin",
                 lastName: "Hood",
+                idNumber: "20210005",
                 profilePicturePath: "/images/robin.png"
             },
         ]);
