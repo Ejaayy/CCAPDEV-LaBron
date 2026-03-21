@@ -5,7 +5,7 @@ export default function Panel({ selectedSlot, onOpenStudentSelector, removeStude
   console.log("Panel user:", user);
   return (
     <div className={styles.panel}>
-      <button onClick={onBack}>Back</button>
+      <button className={styles.backBtn} onClick={onBack}>Back</button>
       <h2>{room.name}</h2>
       <p>{slot.time}</p>
 
@@ -23,7 +23,7 @@ export default function Panel({ selectedSlot, onOpenStudentSelector, removeStude
           <div key={student.seat} className={styles.studentRow}>
             <span>{student.name} - Seat: {student.seat}</span>
             
-              <button onClick={() => removeStudent(student._id, student.reservationId)}>
+              <button className={styles.removeBtn} onClick={() => removeStudent(student._id, student.reservationId)}>
                 Remove
               </button>
             
