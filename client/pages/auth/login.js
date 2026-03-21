@@ -46,6 +46,7 @@ export default function Login() {
                     password: regData.pass1, // Plain text as per MCO2 guidelines
                     firstName: regData.fname,
                     lastName: regData.lname,
+                    idNumber: regData.idNum,
                     role: regData.role
                 }),
             });
