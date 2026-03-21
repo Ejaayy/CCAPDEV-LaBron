@@ -67,15 +67,16 @@ const SelectStudent = ({ currentUserId, onSelectStudent, showAddButton = true })
               filteredStudents.map((student) => (
                 <div key={student._id} className={styles.studentCard}>
                   <div className={styles.avatarPlaceholder}>
-                    {student.profilePicturePath ? (
-                      <img 
-                        src={`http://localhost:3001${student.profilePicturePath}`} 
-                        alt={`${student.firstName}'s avatar`} 
-                        className={styles.avatarImage} 
-                      />
-                    ) : (
-                      <div className={styles.userIcon}></div>
-                    )}
+                    <img
+                        src={student.profilePicturePath ? `http://localhost:3001${student.profilePicturePath}` : "http://localhost:3001/uploads/profiles/default.png"}
+                        alt={`${student.firstName}'s avatar`}
+                        className={styles.avatarImage}
+                        onError={(e) => {
+                          // if the URL is broken, swap to an external default icon
+                          e.target.onerror = null; // prevents an infinite loop if the fallback also fails
+                          e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                        }}
+                    />
                   </div>
                   <p className={styles.studentName}>{student.firstName} {student.lastName}</p>
                   

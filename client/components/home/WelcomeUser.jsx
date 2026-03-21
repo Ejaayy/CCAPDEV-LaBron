@@ -1,9 +1,12 @@
 import styles from '@/styles/WelcomeUser.module.css';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import AccountStyles from "@/styles/AccountPage.module.css";
 
 const WelcomeUser = ({upcomingCount = 0, availableRooms = 0, availableSlots = 0}) => {
     const [user, setUser] = useState(null);
+    const imagePath = user?.profilePicturePath || '/uploads/profiles/default.png';
+    const fullImageUrl = `http://localhost:3001${imagePath}`;
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -30,7 +33,14 @@ const WelcomeUser = ({upcomingCount = 0, availableRooms = 0, availableSlots = 0}
         <div className={styles.welcomeWrapper}>
             <Link href="/account" className={styles.profileContainer}>
                 <div className={styles.profileCircle}>
-                    <img src="profilePic.jpg" alt="Profile" className={styles.profilePicture} />
+                    <img
+                        src={fullImageUrl}
+                        alt={`${user?.firstName}'s profile`}
+                        className={styles.profilePicture}
+                        onError={(e) => {
+                            e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                        }}
+                    />
                 </div>
                 <span className={styles.profileHint}>View Profile</span>
             </Link>

@@ -36,6 +36,7 @@ app.use('/api/reservations', reservationRoutes);
 app.use('/api/slots', slotRoutes);
 app.use('/api/labs', labRoutes);
 app.use('/api/users', userRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 connectDB().then(() => {
   const PORT = process.env.PORT || 3001;

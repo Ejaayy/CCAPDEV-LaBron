@@ -8,6 +8,8 @@ export default function Account() {
     const [userReservations, setUserReservations] = useState([]);
     const [reservations, setReservations] = useState([]);
     const scrollRef = useRef(null);
+    const imagePath = userData?.profilePicturePath || '/uploads/profiles/default.png';
+    const fullImageUrl = `http://localhost:3001${imagePath}`;
 
     const scroll = (direction) => {
         const { current } = scrollRef;
@@ -99,7 +101,14 @@ export default function Account() {
                     <div className={AccountStyles['profile-upper']}>
                         <div className={AccountStyles['avatar-container']}>
                             <div className={AccountStyles['default-avatar']}>
-                                <img src="profilePic.jpg" alt="Profile" className={AccountStyles['profile-img']} />
+                                <img
+                                    src={fullImageUrl}
+                                    alt={`${userData?.firstName}'s profile`}
+                                    className={AccountStyles['profile-img']}
+                                    onError={(e) => {
+                                        e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                                    }}
+                                />
                             </div>
                             <h2 className={AccountStyles['profile-name']}>{userData.firstName} {userData.lastName}</h2>
                         </div>
@@ -160,7 +169,14 @@ export default function Account() {
                     <h3 className={AccountStyles['activity-title']}>Recent Activity</h3>
                     <div className={AccountStyles['activity-feed']}>
                         <div className={AccountStyles['activity-item']}>
-                            <img src="profilePic.jpg" alt="Profile" className={AccountStyles['activity-avatar']} />
+                            <img
+                                src={fullImageUrl}
+                                alt={`${userData?.firstName}'s profile`}
+                                className={AccountStyles['activity-avatar']}
+                                onError={(e) => {
+                                    e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                                }}
+                            />
                             <div className={AccountStyles['activity-text']}>
                                 <span className={AccountStyles['user-link']}>EJ Paingers</span> reserved
                                 <span className={AccountStyles['highlight']}> G304B - Computer Lab</span>
@@ -169,7 +185,14 @@ export default function Account() {
                         </div>
 
                         <div className={AccountStyles['activity-item']}>
-                            <img src="profilePic.jpg" alt="Profile" className={AccountStyles['activity-avatar']} />
+                            <img
+                                src={fullImageUrl}
+                                alt={`${userData?.firstName}'s profile`}
+                                className={AccountStyles['activity-avatar']}
+                                onError={(e) => {
+                                    e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                                }}
+                            />
                             <div className={AccountStyles['activity-text']}>
                                 <span className={AccountStyles['user-link']}>EJ Paingers</span> posted a status:
                                 <p className={AccountStyles['status-quote']}>&#34;ANLALA NUNG STALGCM EXAM MAN&#34;</p>
@@ -178,7 +201,14 @@ export default function Account() {
                         </div>
 
                         <div className={AccountStyles['activity-item']}>
-                            <img src="profilePic.jpg" alt="Profile" className={AccountStyles['activity-avatar']} />
+                            <img
+                                src={fullImageUrl}
+                                alt={`${userData?.firstName}'s profile`}
+                                className={AccountStyles['activity-avatar']}
+                                onError={(e) => {
+                                    e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                                }}
+                            />
                             <div className={AccountStyles['activity-text']}>
                                 <span className={AccountStyles['user-link']}>EJ Paingers</span> reserved
                                 <span className={AccountStyles['highlight']}> G302A - Computer Lab</span>
@@ -187,7 +217,14 @@ export default function Account() {
                         </div>
 
                         <div className={AccountStyles['activity-item']}>
-                            <img src="profilePic.jpg" alt="Profile" className={AccountStyles['activity-avatar']} />
+                            <img
+                                src={fullImageUrl}
+                                alt={`${userData?.firstName}'s profile`}
+                                className={AccountStyles['activity-avatar']}
+                                onError={(e) => {
+                                    e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                                }}
+                            />
                             <div className={AccountStyles['activity-text']}>
                                 <span className={AccountStyles['user-link']}>EJ Paingers</span> reserved
                                 <span className={AccountStyles['highlight']}> G304A - Computer Lab</span>
@@ -196,7 +233,14 @@ export default function Account() {
                         </div>
 
                         <div className={AccountStyles['activity-item']}>
-                            <img src="profilePic.jpg" alt="Profile" className={AccountStyles['activity-avatar']} />
+                            <img
+                                src={fullImageUrl}
+                                alt={`${userData?.firstName}'s profile`}
+                                className={AccountStyles['activity-avatar']}
+                                onError={(e) => {
+                                    e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                                }}
+                            />
                             <div className={AccountStyles['activity-text']}>
                                 <span className={AccountStyles['user-link']}>EJ Paingers</span> reserved
                                 <span className={AccountStyles['highlight']}> G302B - Computer Lab</span>
@@ -205,7 +249,14 @@ export default function Account() {
                         </div>
 
                         <div className={AccountStyles['activity-item']}>
-                            <img src="profilePic.jpg" alt="Profile" className={AccountStyles['activity-avatar']} />
+                            <img
+                                src={fullImageUrl}
+                                alt={`${userData?.firstName}'s profile`}
+                                className={AccountStyles['activity-avatar']}
+                                onError={(e) => {
+                                    e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                                }}
+                            />
                             <div className={AccountStyles['activity-text']}>
                                 <span className={AccountStyles['user-link']}>EJ Paingers</span> reserved
                                 <span className={AccountStyles['highlight']}> VL101 - Chemistry Lab</span>
