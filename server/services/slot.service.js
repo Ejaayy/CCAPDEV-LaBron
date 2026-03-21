@@ -73,7 +73,14 @@ exports.getSlotReservationDetails = async (slotId) => {
                         ? "Anonymous"
                         : `${res.reservedFor.firstName || ""} ${res.reservedFor.lastName || ""}`.trim()
                     : "Unknown";
-                reservationDetails.push({ name: userName, seat: s.seat });
+
+                // ✅ Now includes IDs
+                reservationDetails.push({ 
+                    reservationId: res._id,
+                    studentId: res.reservedFor?._id,
+                    name: userName, 
+                    seat: s.seat 
+                });
             });
     });
 

@@ -5,6 +5,8 @@ import LabCard from "@/components/edit-reservations/LabCard/LabCard";
 import RoomSlotsPanel from "@/components/edit-reservations/RoomSlotsPanel/RoomSlotsPanel";
 import Panel from "@/components/edit-reservations/Panel/Panel";
 import AddRoomModal from "@/components/edit-reservations/AddRoomModal/AddRoomModal";
+import SelectStudent from "@/components/home/SelectStudents"; 
+import SeatSelector from "@/components/SeatSelector/SeatSelector";
 import styles from "./ManageReservations.module.css";
 import { useRouter } from "next/router";
 
@@ -26,7 +28,6 @@ async function safeJson(res) {
 }
 
 export default function ManageReservations() {
-  // useState hooks first
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [search, setSearch] = useState("");
   const [labs, setLabs] = useState([]);
@@ -34,31 +35,25 @@ export default function ManageReservations() {
   const [selectedLab, setSelectedLab] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [addRoomModalOpen, setAddRoomModalOpen] = useState(false);
+  const [isStudentSelectorOpen, setIsStudentSelectorOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [pendingStudent, setPendingStudent] = useState(null);
+  const [pendingSeats, setPendingSeats] = useState([]);
+
   const router = useRouter();
 
-  // auth check effect
+  // Authentication check
   useEffect(() => {
     const checkAccess = async () => {
       try {
-        const res = await fetch("http://localhost:3001/api/auth/me", {
-          credentials: "include",
-        });
-
-        if (!res.ok) {
-          router.push("/auth/login");
-          return;
-        }
-
+        const res = await fetch(`${API_BASE}/auth/me`, { credentials: "include" });
+        if (!res.ok) return router.push("/auth/login");
+        
         const data = await res.json();
-
-        if (data.role !== "technician") {
-          router.push("/home");
-          return;
-        }
-
+        if (data.role !== "technician") return router.push("/home");
+        
         setUser(data);
       } catch (err) {
         console.error(err);
@@ -67,7 +62,6 @@ export default function ManageReservations() {
         setLoading(false);
       }
     };
-
     checkAccess();
   }, [router]);
 
@@ -89,14 +83,9 @@ export default function ManageReservations() {
   }, []);
 
   const fetchSlots = useCallback(async () => {
-    if (!date) {
-      setSlots([]);
-      return;
-    }
+    if (!date) return setSlots([]);
     try {
-      const res = await fetch(`${API_BASE}/slots?date=${date}&all=true`, {
-        credentials: "include",
-      });
+      const res = await fetch(`${API_BASE}/slots?date=${date}&all=true`, { credentials: "include" });
       const data = await safeJson(res);
       setSlots(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -108,30 +97,18 @@ export default function ManageReservations() {
   useEffect(() => {
     if (!user) return;
     fetchLabs();
-  }, [fetchLabs, user]);
-
-  useEffect(() => {
-    if (!user) return;
     fetchSlots();
-  }, [fetchSlots, user]);
+  }, [fetchLabs, fetchSlots, user]);
 
-  // ✅ Early returns AFTER all hooks
-  if (loading) return null;
-  if (!user) return null;
+  if (loading || !user) return null;
 
-  // Derived values
   const filteredLabs = labs.filter((lab) => {
     const q = search.toLowerCase();
-    return (
-      (lab.name || "").toLowerCase().includes(q) ||
-      (lab.location || "").toLowerCase().includes(q)
-    );
+    return (lab.name || "").toLowerCase().includes(q) || (lab.location || "").toLowerCase().includes(q);
   });
 
-  const slotsForSelectedLab =
-    selectedLab && slots.filter((s) => s.lab?._id === selectedLab._id);
+  const slotsForSelectedLab = selectedLab && slots.filter((s) => s.lab?._id === selectedLab._id);
 
-  // Handlers
   const handleLabClick = (lab) => {
     setSelectedLab(lab);
     setSelectedSlot(null);
@@ -142,163 +119,118 @@ export default function ManageReservations() {
     if (!lab) return;
 
     try {
-      const res = await fetch(
-        `${API_BASE}/slots/${slot._id}/occupancy?details=true`,
-        { credentials: "include" }
-      );
+      const res = await fetch(`${API_BASE}/slots/${slot._id}/occupancy?details=true`, { credentials: "include" });
       const data = await safeJson(res);
       const students = data.reservations || [];
-      const slotWithStudents = {
-        ...slot,
-        time: `${slot.startTime || ""} - ${slot.endTime || ""}`.trim(),
-        students,
-        isBlocked: !slot.isAvailable,
-        status: !slot.isAvailable ? "blocked" : undefined,
-      };
-      setSelectedSlot({ room: lab, slot: slotWithStudents });
-    } catch (err) {
-      console.error("Failed to fetch slot details:", err);
       setSelectedSlot({
         room: lab,
         slot: {
           ...slot,
           time: `${slot.startTime || ""} - ${slot.endTime || ""}`.trim(),
-          students: [],
+          students,
           isBlocked: !slot.isAvailable,
           status: !slot.isAvailable ? "blocked" : undefined,
-        },
+        }
       });
+    } catch (err) {
+      console.error("Failed to fetch slot details:", err);
     }
   };
 
-  const handleAddSlot = async (startTime, endTime) => {
-    if (!selectedLab || !date) return;
+  // FIX: No optimistic update — wait for DB to confirm before refreshing UI
+  // This ensures SeatSelector always sees accurate committed data when it remounts
+  const submitReservation = async () => {
+    if (!pendingStudent || pendingSeats.length === 0 || !selectedSlot) return;
+
+    const targetSeat = pendingSeats[0];
+
+    const newStudent = { 
+      _id: pendingStudent._id, 
+      name: `${pendingStudent.firstName} ${pendingStudent.lastName}`, 
+      seat: targetSeat
+    };
+
+    // Close modal immediately so UX feels responsive
+    setIsStudentSelectorOpen(false);
+    setPendingStudent(null);
+    setPendingSeats([]);
+
     try {
-      const res = await fetch(`${API_BASE}/slots`, {
+      const res = await fetch(`${API_BASE}/reservations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          lab: selectedLab._id,
-          date,
-          startTime,
-          endTime,
+        body: JSON.stringify({ 
+          reservedFor: newStudent._id,
+          reservedBy: user._id,
+          slots: [{ slot: selectedSlot.slot._id, seat: targetSeat }],
+          status: "active",
+          isAnonymous: false
         }),
-      });
-      if (res.ok) {
-        await fetchSlots();
-      } else {
-        const err = await safeJson(res);
-        alert(err.message || "Failed to add slot");
+      });  
+      
+      if (!res.ok) {
+        const errorData = await res.text(); 
+        console.error("BACKEND REJECTION REASON:", errorData);
+        throw new Error(`Backend rejected: ${res.status} - ${errorData}`);
       }
+
+      //  Only refresh AFTER DB confirms — SeatSelector remounts with fresh data
+      await handleSlotClick(selectedSlot.slot);
+
     } catch (err) {
-      console.error("Failed to add slot:", err);
-      alert("Failed to add slot");
+      console.error("Error saving student to slot:", err.message);
+      alert(`Failed to add student: ${err.message}`);
     }
   };
 
-  const handleAddRoom = async (labData) => {
-    try {
-      const res = await fetch(`${API_BASE}/labs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(labData),
-      });
-      if (res.ok) {
-        await fetchLabs();
-        setAddRoomModalOpen(false);
-      } else {
-        const err = await safeJson(res);
-        alert(err.message || "Failed to add room");
-      }
-    } catch (err) {
-      console.error("Failed to add room:", err);
-      alert("Failed to add room");
-    }
-  };
-
-  const toggleBlockSlot = async () => {
+  const removeStudent = async (studentId, reservationId) => {
+ 
     if (!selectedSlot) return;
-    const slot = selectedSlot.slot;
-    const newAvailable = !!slot.isBlocked || slot.status === "blocked";
-    try {
-      const res = await fetch(`${API_BASE}/slots/${slot._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ isAvailable: newAvailable }),
-      });
-      if (res.ok) {
-        await fetchSlots();
-        setSelectedSlot((prev) => ({
-          ...prev,
-          slot: {
-            ...prev.slot,
-            isBlocked: !newAvailable,
-            status: !newAvailable ? "blocked" : undefined,
-          },
-        }));
-      } else {
-        const err = await safeJson(res);
-        alert(err.message || "Failed to update slot");
-      }
-    } catch (err) {
-      console.error("Failed to block/unblock slot:", err);
-      alert("Failed to update slot");
-    }
-  };
 
-  const addStudent = (student) => {
-    if (!selectedSlot) return;
-    const newStudent =
-      typeof student === "string" ? { name: student, seat: "Unassigned" } : student;
+    const previousStudents = [...(selectedSlot.slot.students || [])];
+
+    // Optimistic UI Update
     setSelectedSlot((prev) => ({
       ...prev,
       slot: {
         ...prev.slot,
-        students: [...(prev.slot.students || []), newStudent],
-      },
-    }));
-  };
-
-  const removeStudent = (studentName) => {
-    if (!selectedSlot) return;
-    setSelectedSlot((prev) => ({
-      ...prev,
-      slot: {
-        ...prev.slot,
-        students: (prev.slot.students || []).filter(
-          (s) => (typeof s === "string" ? s : s.name) !== studentName
+        students: prev.slot.students.filter(
+          s => s._id !== studentId || s.reservationId !== reservationId
         ),
       },
     }));
+
+    try {
+      const res = await fetch(`${API_BASE}/reservations/${reservationId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to remove student from DB");
+
+    } catch (err) {
+      console.error("Failed to remove student:", err);
+      alert("Failed to remove student. Reverting changes.");
+      setSelectedSlot((prev) => ({
+        ...prev,
+        slot: { ...prev.slot, students: previousStudents }
+      }));
+    }
   };
 
-  const editStudent = (index, updatedStudent) => {
-    if (!selectedSlot) return;
-    const students = [...(selectedSlot.slot.students || [])];
-    students[index] = updatedStudent;
-    setSelectedSlot((prev) => ({
-      ...prev,
-      slot: { ...prev.slot, students },
-    }));
-  };
-
-  const handleBackToSlots = () => {
-    setSelectedSlot(null);
-  };
+  const handleBackToSlots = () => setSelectedSlot(null);
 
   const renderRightPanel = () => {
+    console.log("USER ROLE:", user?.role);
     if (selectedSlot) {
       return (
         <Panel
           selectedSlot={selectedSlot}
-          addStudent={addStudent}
+          onOpenStudentSelector={() => setIsStudentSelectorOpen(true)}
           removeStudent={removeStudent}
-          onToggleBlock={toggleBlockSlot}
-          onEditStudent={editStudent}
           onBack={handleBackToSlots}
+          
         />
       );
     }
@@ -310,7 +242,6 @@ export default function ManageReservations() {
           selectedSlot={selectedSlot}
           date={date}
           onSlotClick={handleSlotClick}
-          onAddSlot={handleAddSlot}
         />
       );
     }
@@ -318,81 +249,80 @@ export default function ManageReservations() {
   };
 
   return (
-    <div
-      style={{
-        backgroundColor: "#242738",
-        position: "relative",
-        minHeight: "100vh",
-      }}
-    >
-      <HomeNavbar
-        style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 }}
-      />
+    <div style={{ backgroundColor: "#242738", position: "relative", minHeight: "100vh" }}>
+      <HomeNavbar style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 }} />
 
-      <img
-        src="../../laboratoryPhoto.png"
-        style={{
-          height: "100vh",
-          width: "100%",
-          objectFit: "cover",
-        }}
-        alt="Laboratory"
-      />
+      <img src="../../laboratoryPhoto.png" style={{ height: "100vh", width: "100%", objectFit: "cover" }} alt="Laboratory" />
 
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          flexDirection: "column",
-          marginTop: "100px",
-        }}
-      >
-        <TopBar
-          date={date}
-          setDate={setDate}
-          search={search}
-          setSearch={setSearch}
-        />
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", marginTop: "100px" }}>
+        <TopBar date={date} setDate={setDate} search={search} setSearch={setSearch} />
 
         <div className={styles.container}>
           <div className={styles.schedule}>
-            <div className={styles.addRoomRow}>
-              <button
-                className={styles.addRoomBtn}
-                onClick={() => setAddRoomModalOpen(true)}
-              >
-                + Add Room
-              </button>
-            </div>
-            {filteredLabs.length > 0 ? (
-              filteredLabs.map((lab) => (
-                <LabCard
-                  key={lab._id}
-                  lab={lab}
-                  isSelected={selectedLab?._id === lab._id}
-                  onClick={() => handleLabClick(lab)}
-                />
-              ))
-            ) : (
-              <div className={styles.noResults}>
-                <p>
-                  {search
-                    ? `No rooms found matching "${search}"`
-                    : "No rooms yet. Add one to get started."}
-                </p>
-              </div>
-            )}
+            {filteredLabs.map((lab) => (
+                <LabCard key={lab._id} lab={lab} isSelected={selectedLab?._id === lab._id} onClick={() => handleLabClick(lab)} />
+            ))}
           </div>
           {renderRightPanel()}
         </div>
       </div>
 
-      <AddRoomModal
-        isOpen={addRoomModalOpen}
-        onClose={() => setAddRoomModalOpen(false)}
-        onAddRoom={handleAddRoom}
-      />
+      {isStudentSelectorOpen && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999
+        }}>
+          <div style={{
+            backgroundColor: "#242738", padding: "20px", borderRadius: "12px", position: "relative",
+            maxWidth: "90vw", maxHeight: "90vh", overflowY: "auto", minWidth: "500px"
+          }}>
+            <button 
+              onClick={() => {
+                setIsStudentSelectorOpen(false);
+                setPendingStudent(null);
+                setPendingSeats([]);
+              }}
+              style={{ position: "absolute", top: "15px", right: "15px", background: "transparent", border: "none", color: "white", fontSize: "20px", cursor: "pointer", zIndex: 10 }}
+            >✕</button>
+
+            {/* STEP 1: PICK STUDENT */}
+            {!pendingStudent ? (
+              <SelectStudent 
+                currentUserId={user._id} 
+                onSelectStudent={(student) => setPendingStudent(student)} 
+              />
+            ) : (
+              /* STEP 2: PICK SEAT */
+              <div style={{ color: "white", textAlign: "center", padding: "20px" }}>
+                <h3 style={{ marginBottom: "20px" }}>
+                  Select Seat for {pendingStudent.firstName} {pendingStudent.lastName}
+                </h3>
+                
+                {/* FIX: key prop forces SeatSelector to remount and re-fetch
+                    fresh occupancy data from the DB after every reservation */}
+                <SeatSelector
+                  key={selectedSlot.slot.students.length}
+                  selectedSlotId={selectedSlot.slot._id} 
+                  labData={selectedLab} 
+                  onSelect={(seats) => setPendingSeats(seats)} 
+                />
+
+                <button 
+                  onClick={submitReservation}
+                  disabled={pendingSeats.length === 0}
+                  style={{
+                    marginTop: "20px", padding: "12px 24px", backgroundColor: pendingSeats.length === 0 ? "#555" : "#4CAF50",
+                    color: "white", border: "none", borderRadius: "6px", cursor: pendingSeats.length === 0 ? "not-allowed" : "pointer",
+                    fontSize: "16px", fontWeight: "bold", width: "100%"
+                  }}
+                >
+                  Confirm Reservation
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

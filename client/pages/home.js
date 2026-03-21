@@ -17,6 +17,7 @@ export default function Home(){
      const [availableStats, setAvailableStats] = useState({rooms: 0, slots: 0});
      const router = useRouter();
 
+
     // Data for the two quick actions requested
     const quickActions = [
         {
@@ -160,7 +161,7 @@ export default function Home(){
                     </div>
 
                     <div className={styles['right-container']}>
-                        <SelectStudents currentUserId={currentUser?._id} />
+                        <SelectStudents currentUserId={currentUser?._id} showAddButton={false} />
                     </div>
                 </div>
             </div>

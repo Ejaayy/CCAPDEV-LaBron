@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import styles from '@/styles/SelectStudents.module.css';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
-const SelectStudent = ({ currentUserId }) => {
+const SelectStudent = ({ currentUserId, onSelectStudent, showAddButton = true }) => {
+  const router = useRouter(); // ✅ MOVED HERE — must be called before use
+  const isHomePage = router.pathname === '/home' || router.pathname === '/home-tech';
+
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -13,13 +17,10 @@ const SelectStudent = ({ currentUserId }) => {
         const response = await fetch('http://localhost:3001/api/users/students', {
           method: 'GET',
           credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Content-Type': 'application/json' }
         });
         if (response.ok) {
           const data = await response.json();
-          console.log("Fetched students:", data);
           setStudents(data);
         } else {
           console.error("Failed to fetch students:", response.status);
@@ -30,13 +31,11 @@ const SelectStudent = ({ currentUserId }) => {
         setLoading(false);
       }
     };
-    
     fetchStudents();
   }, []);
 
   const filteredStudents = students.filter(student => {
     if(student._id === currentUserId) return false; 
-
     const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
     return fullName.includes(searchTerm.toLowerCase());
   });
@@ -58,40 +57,59 @@ const SelectStudent = ({ currentUserId }) => {
       </div>
 
       {loading ? (
-          <p className={styles.loadingStudent}>Loading students...</p>
+        <p className={styles.loadingStudent}>Loading students...</p>
       ) : (
-          <div className={styles.carouselWrapper}>
-            <button className={styles.arrowBtn}>&#10094;</button>
-            
-            <div className={styles.studentList}>
-              {filteredStudents.length > 0 ? (
-                  filteredStudents.map((student) => (
-                    <div key={student._id} className={styles.studentCard}>
-                      <div className={styles.avatarPlaceholder}>
-                         {student.profilePicturePath ? (
-                             <img 
-                                src={`http://localhost:3001${student.profilePicturePath}`} 
-                                alt={`${student.firstName}'s avatar`} 
-                                /* FIX: Changed style= to className= */
-                                className={styles.avatarImage} 
-                             />
-                         ) : (
-                             <div className={styles.userIcon}></div>
-                         )}
-                      </div>
-                      <p className={styles.studentName}>{student.firstName} {student.lastName}</p>
-                      <Link href={`/viewProfile?userId=${student._id}`} className={styles.viewProfileLink}>
-                        View Profile
-                      </Link>
-                    </div>
-                  ))
-              ) : (
-                  <p className={styles.noResults}>No other students found.</p>
-              )}
-            </div>
+        <div className={styles.carouselWrapper}>
+          <button className={styles.arrowBtn}>&#10094;</button>
+          
+          <div className={styles.studentList}>
+            {filteredStudents.length > 0 ? (
+              filteredStudents.map((student) => (
+                <div key={student._id} className={styles.studentCard}>
+                  <div className={styles.avatarPlaceholder}>
+                    {student.profilePicturePath ? (
+                      <img 
+                        src={`http://localhost:3001${student.profilePicturePath}`} 
+                        alt={`${student.firstName}'s avatar`} 
+                        className={styles.avatarImage} 
+                      />
+                    ) : (
+                      <div className={styles.userIcon}></div>
+                    )}
+                  </div>
+                  <p className={styles.studentName}>{student.firstName} {student.lastName}</p>
+                  
+                  {/* ✅ Hide on home pages */}
+                  {showAddButton && !isHomePage && (
+                    <button 
+                      onClick={() => onSelectStudent(student)}
+                      style={{
+                        marginTop: '10px',
+                        padding: '8px 16px',
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        marginBottom: '10px'
+                      }}
+                    >
+                      Add to Slot
+                    </button>
+                  )}
 
-            <button className={styles.arrowBtn}>&#10095;</button>
+                  <Link href={`/viewProfile?userId=${student._id}`} className={styles.viewProfileLink}>
+                    View Profile
+                  </Link>
+                </div>
+              ))
+            ) : (
+              <p className={styles.noResults}>No other students found.</p>
+            )}
           </div>
+
+          <button className={styles.arrowBtn}>&#10095;</button>
+        </div>
       )}
     </div>
   );

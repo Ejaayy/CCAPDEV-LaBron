@@ -102,3 +102,24 @@ exports.getAvailabilityStats = async (req, res) => {
         res.status(500).json({ message: "Failed to fetch availability stats." });       
     }
 };
+
+exports.deleteReservation = async (req, res) => {
+    try {
+        const { reservationId } = req.params;
+
+        const result = await Reservation.findByIdAndUpdate(
+            reservationId,
+            { status: "cancelled" },
+            { new: true }
+        );
+
+        if (!result) {
+            return res.status(404).json({ message: "Reservation not found" });
+        }
+
+        res.status(200).json({ message: "Reservation removed successfully" });
+    } catch (error) {
+        console.error("Delete reservation error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
