@@ -219,7 +219,7 @@ export default function ReservePage(){
                                             </div>
                                             <div className={ReserveStyles.summaryRow}>
                                                 <span className={ReserveStyles.summaryLabel}>Time Slot:</span>
-                                                <span className={ReserveStyles.summaryValue}>09:00 AM - 11:00 AM</span>
+                                                <span className={ReserveStyles.summaryValue}>{selectedLabSlot?.startTime}-{selectedLabSlot?.endTime}</span>
                                             </div>
                                             <div className={ReserveStyles.summaryRow}>
                                                 <span className={ReserveStyles.summaryLabel}>Seat Number:</span>
