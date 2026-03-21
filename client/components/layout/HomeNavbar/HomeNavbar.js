@@ -67,6 +67,20 @@ export default function HomeNavbar({ style, className, ...rest }) {
         {/* Navbar links */}
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto gap-4">
+
+            {user?.role === "technician" && (
+            <li className="nav-item">
+              <Link 
+                href="/home-tech"
+                className={`text-decoration-none ${styles.navLink} ${isActive('/home-tech') ? styles.activeNavLink : ''}`}
+              >
+                Home
+              </Link>
+            </li>
+            )}
+
+
+            {user?.role === "student" && (
             <li className="nav-item">
               <Link 
                 href="/home"
@@ -75,6 +89,9 @@ export default function HomeNavbar({ style, className, ...rest }) {
                 Home
               </Link>
             </li>
+            )}
+
+            {user?.role === "student" && (
             <li className="nav-item">
               <Link 
                 href="/reserve" 
@@ -83,6 +100,7 @@ export default function HomeNavbar({ style, className, ...rest }) {
                 Reserve
               </Link>
             </li>
+            )}
             
             {/* Only show this if user is a damn technician */}
             {user?.role === "technician" && (
