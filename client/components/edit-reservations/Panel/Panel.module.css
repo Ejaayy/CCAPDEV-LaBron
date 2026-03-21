@@ -16,6 +16,7 @@
   font-size: 14px;
   margin-bottom: 16px;
   padding: 0;
+  transition: color 0.2s ease;
 }
 
 .backBtn:hover {
@@ -32,16 +33,29 @@
   margin-bottom: 6px;
 }
 
-.studentItem {
+/* Student List & Rows */
+.studentList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.studentRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: #242738;
-  padding: 8px 10px;
+  padding: 12px 16px;
   border-radius: 8px;
-  margin-bottom: 6px;
+  border: 1px solid #334155;
+  transition: border-color 0.2s ease;
 }
 
+.studentRow:hover {
+  border-color: #475569;
+}
+
+/* Add / Remove Buttons */
 .addStudentInput {
   width: 100%;
   padding: 8px 10px;
@@ -52,29 +66,44 @@
   color: white;
 }
 
-.addBtn, .removeBtn {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-}
-
-.addBtn {
+.addStudentBtn {
+  width: 100%;
   background: #3B82F6;
   color: white;
-  width: 100%;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.addBtn:hover {
+.addStudentBtn:hover {
   background: #2563eb;
+  transform: translateY(-1px);
 }
 
 .removeBtn {
+  background: rgba(248, 113, 113, 0.1);
+  color: #F87171;
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeBtn:hover {
   background: #F87171;
   color: white;
 }
 
-
+/* Status & Blocks */
 .blocked {
   background: #374151;
   color: #9ca3af;
@@ -190,7 +219,6 @@
   background: #2563eb;
 }
 
-
 /* Student Info Display */
 .studentInfo {
   display: flex;
@@ -211,4 +239,40 @@
 .studentActions {
   display: flex;
   gap: 6px;
+}
+
+/* Solid Back Button */
+.backBtn {
+  background: #334155;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  display: inline-block;
+}
+
+.backBtn:hover {
+  background: #475569;
+}
+
+/* Solid Remove Button */
+.removeBtn {
+  background: #EF4444;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.removeBtn:hover {
+  background: #DC2626;
 }
