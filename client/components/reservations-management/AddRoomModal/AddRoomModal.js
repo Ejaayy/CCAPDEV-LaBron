@@ -5,19 +5,27 @@ export default function AddRoomModal({ isOpen, onClose, onAddRoom }) {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [seatCount, setSeatCount] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const count = parseInt(seatCount, 10);
-    if (!name || !count || count < 1) return;
-    onAddRoom({ name, location: location || "", seatCount: count });
-    setName("");
-    setLocation("");
-    setSeatCount("");
-    onClose();
+    if (!name || !count || count < 1 || isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      await onAddRoom({ name, location: location || "", seatCount: count });
+      setName("");
+      setLocation("");
+      setSeatCount("");
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
+    if (isSubmitting) return;
     setName("");
     setLocation("");
     setSeatCount("");
@@ -44,6 +52,7 @@ export default function AddRoomModal({ isOpen, onClose, onAddRoom }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={styles.input}
+              disabled={isSubmitting}
               required
             />
           </div>
@@ -55,6 +64,7 @@ export default function AddRoomModal({ isOpen, onClose, onAddRoom }) {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className={styles.input}
+              disabled={isSubmitting}
             />
           </div>
           <div className={styles.inputGroup}>
@@ -66,15 +76,16 @@ export default function AddRoomModal({ isOpen, onClose, onAddRoom }) {
               value={seatCount}
               onChange={(e) => setSeatCount(e.target.value)}
               className={styles.input}
+              disabled={isSubmitting}
               required
             />
           </div>
           <div className={styles.actions}>
-            <button type="button" className={styles.cancelBtn} onClick={handleClose}>
+            <button type="button" className={styles.cancelBtn} onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </button>
-            <button type="submit" className={styles.submitBtn}>
-              Add Room
+            <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Room"}
             </button>
           </div>
         </form>

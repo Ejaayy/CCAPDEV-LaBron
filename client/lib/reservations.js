@@ -1,0 +1,30 @@
+import { apiJson } from "@/lib/api";
+
+export function createReservation(payload) {
+  return apiJson("/reservations", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getMyReservations() {
+  return apiJson("/reservations/my-reservations");
+}
+
+export function getMyStats() {
+  return apiJson("/reservations/my-stats");
+}
+
+export function getAvailabilityStats() {
+  return apiJson("/reservations/available-stats");
+}
+
+export function getPublicReservationsByUser(userId) {
+  return apiJson(`/reservations/user/${userId}`);
+}
+
+export function deleteReservation(reservationId) {
+  return apiJson(`/reservations/${reservationId}`, {
+    method: "DELETE",
+  });
+}

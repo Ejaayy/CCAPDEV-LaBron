@@ -1,4 +1,4 @@
-import styles from "@/components/home-tech/WelcomeTech.module.css";
+import styles from "./WelcomeTech.module.css";
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 

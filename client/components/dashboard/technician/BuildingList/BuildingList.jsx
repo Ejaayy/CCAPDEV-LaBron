@@ -1,6 +1,6 @@
 import React, { use } from 'react';
 import { useRouter } from 'next/router';
-import styles from '@/components/home-tech/BuildingList.module.css';
+import styles from "./BuildingList.module.css";
 
 const BuildingList = ({ buildings = [] }) => {
     const router = useRouter();

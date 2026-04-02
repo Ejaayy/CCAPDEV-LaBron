@@ -7,8 +7,14 @@ export default function AddSlotForm({ onAddSlot, disabled }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!startTime || !endTime) return;
-    onAddSlot(startTime.trim(), endTime.trim());
+
+    onAddSlot({
+      startTime: startTime.trim(),
+      endTime: endTime.trim(),
+    });
+
     setStartTime("");
     setEndTime("");
   };
@@ -26,6 +32,7 @@ export default function AddSlotForm({ onAddSlot, disabled }) {
           disabled={disabled}
         />
       </div>
+
       <div className={styles.inputGroup}>
         <label className={styles.label}>End time</label>
         <input
@@ -37,6 +44,7 @@ export default function AddSlotForm({ onAddSlot, disabled }) {
           disabled={disabled}
         />
       </div>
+
       <button type="submit" className={styles.submitBtn} disabled={disabled}>
         Add Time Slot
       </button>

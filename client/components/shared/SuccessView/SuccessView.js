@@ -1,4 +1,5 @@
-import SuccessStyles from "@/components/SuccessView/SuccessView.module.css"
+import SuccessStyles from "./SuccessView.module.css";
+
 
 export default function SuccessView({ labName, date, seats, countdown }){
 

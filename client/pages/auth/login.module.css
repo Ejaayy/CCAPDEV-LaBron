@@ -243,3 +243,12 @@
     outline: none;
     border: 2px solid #07C1FF;
 }
+
+.errorMessage{
+    width: 400px;
+    margin-top: 12px;
+    margin-bottom: 0;
+    color: #C62828;
+    font-size: 14px;
+    font-weight: 600;
+}

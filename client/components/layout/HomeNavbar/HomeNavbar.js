@@ -1,54 +1,48 @@
-import { useEffect, useState } from "react";
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import styles from './HomeNavbar.module.css';
-
+import { useState } from "react";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import styles from "./HomeNavbar.module.css";
+import useAuth from "@/hooks/useAuth";
+import { logout } from "@/lib/auth";
 
 export default function HomeNavbar({ style, className, ...rest }) {
-
-
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("http://localhost:3001/api/auth/me", {
-          credentials: "include",
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-      }
-    };
-
-    fetchUser();
-  }, []);
+  const { user } = useAuth();
 
   const toggleDropdown = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((prev) => !prev);
   };
 
   const isActive = (path) => {
-    if (path === '/') {
-      return router.pathname === '/' || router.pathname === '/home';
+    if (path === "/") {
+      return router.pathname === "/" || router.pathname === "/home";
     }
     return router.pathname.startsWith(path);
+  };
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setIsLoggingOut(false);
+      setIsOpen(false);
+    }
   };
 
   return (
     <nav
       {...rest}
       style={style}
-      className={`navbar navbar-expand-md py-4 ${styles.homeNavbar} ${className || ''}`}
+      className={`navbar navbar-expand-md py-4 ${styles.homeNavbar} ${className || ""}`}
     >
       <div className="container">
-        <Link href="/home" className={styles['brand-text']}>
+        <Link href={user?.role === "technician" ? "/home-tech" : "/home"} className={styles["brand-text"]}>
           LabKoTo
         </Link>
 
@@ -64,83 +58,90 @@ export default function HomeNavbar({ style, className, ...rest }) {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Navbar links */}
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto gap-4">
+            {user?.role === "technician" && (
+              <li className="nav-item">
+                <Link
+                  href="/home-tech"
+                  className={`text-decoration-none ${styles.navLink} ${
+                    isActive("/home-tech") ? styles.activeNavLink : ""
+                  }`}
+                >
+                  Home
+                </Link>
+              </li>
+            )}
+
+            {user?.role === "student" && (
+              <li className="nav-item">
+                <Link
+                  href="/home"
+                  className={`text-decoration-none ${styles.navLink} ${
+                    isActive("/home") ? styles.activeNavLink : ""
+                  }`}
+                >
+                  Home
+                </Link>
+              </li>
+            )}
+
+            {user?.role === "student" && (
+              <li className="nav-item">
+                <Link
+                  href="/reserve"
+                  className={`text-decoration-none ${styles.navLink} ${
+                    isActive("/reserve") ? styles.activeNavLink : ""
+                  }`}
+                >
+                  Reserve
+                </Link>
+              </li>
+            )}
 
             {user?.role === "technician" && (
-            <li className="nav-item">
-              <Link 
-                href="/home-tech"
-                className={`text-decoration-none ${styles.navLink} ${isActive('/home-tech') ? styles.activeNavLink : ''}`}
-              >
-                Home
-              </Link>
-            </li>
-            )}
-
-
-            {user?.role === "student" && (
-            <li className="nav-item">
-              <Link 
-                href="/home"
-                className={`text-decoration-none ${styles.navLink} ${isActive('/home') ? styles.activeNavLink : ''}`}
-              >
-                Home
-              </Link>
-            </li>
+              <li className="nav-item">
+                <Link
+                  href="/edit-reservations/manage-reservations"
+                  className={`text-decoration-none ${styles.navLink} ${
+                    isActive("/edit-reservations/manage") ? styles.activeNavLink : ""
+                  }`}
+                >
+                  Manage Reservations
+                </Link>
+              </li>
             )}
 
             {user?.role === "student" && (
-            <li className="nav-item">
-              <Link 
-                href="/reserve" 
-                className={`text-decoration-none ${styles.navLink} ${isActive('/reserve') ? styles.activeNavLink : ''}`}
-              >
-                Reserve
-              </Link>
-            </li>
-            )}
-            
-            {/* Only show this if user is a damn technician */}
-            {user?.role === "technician" && (
-            <li className="nav-item">
-              <Link 
-                href="/edit-reservations/manage-reservations" 
-                className={`text-decoration-none ${styles.navLink} ${isActive('/edit-reservations/manage') ? styles.activeNavLink : ''}`}
-              >
-                Manage Reservations
-              </Link>
-            </li>
-            )}
-            
-            {/* Only show this if user is a damn student */}  
-            {user?.role === "student" && (
-            <li className="nav-item">
-              <Link 
-                href="/edit-reservations/my-reservations" 
-                className={`text-decoration-none ${styles.navLink} ${isActive('/edit-reservations/my') ? styles.activeNavLink : ''}`}
-              >
-                My Reservations
-              </Link>
-            </li>
+              <li className="nav-item">
+                <Link
+                  href="/edit-reservations/my-reservations"
+                  className={`text-decoration-none ${styles.navLink} ${
+                    isActive("/edit-reservations/my") ? styles.activeNavLink : ""
+                  }`}
+                >
+                  My Reservations
+                </Link>
+              </li>
             )}
 
-            {/* Account Dropdown */}
             <li className="nav-item dropdown">
               <button
-                className={`nav-link dropdown-toggle btn btn-link border-0 p-0 ${styles.navLink} ${isActive('/account') ? styles.activeNavLink : ''}`}
+                className={`nav-link dropdown-toggle btn btn-link border-0 p-0 ${styles.navLink} ${
+                  isActive("/account") ? styles.activeNavLink : ""
+                }`}
                 onClick={toggleDropdown}
                 type="button"
-                style={{ textDecoration: 'none' }}
+                style={{ textDecoration: "none" }}
               >
                 Account
               </button>
+
               <ul
-                className={`dropdown-menu dropdown-menu-end shadow ${isOpen ? 'show' : ''}`}
+                className={`dropdown-menu dropdown-menu-end shadow ${isOpen ? "show" : ""}`}
                 style={{
-                  display: isOpen ? 'block' : 'none',
-                  position: 'absolute',
+                  display: isOpen ? "block" : "none",
+                  position: "absolute",
                   backgroundColor: "#242738",
                 }}
               >
@@ -149,11 +150,20 @@ export default function HomeNavbar({ style, className, ...rest }) {
                     Account Settings
                   </Link>
                 </li>
-                <li><hr className="dropdown-divider bg-black" /></li>
+
                 <li>
-                  <Link href="/" className="dropdown-item text-danger fw-semibold">
-                    Log Out
-                  </Link>
+                  <hr className="dropdown-divider bg-black" />
+                </li>
+
+                <li>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="dropdown-item text-danger fw-semibold"
+                    disabled={isLoggingOut}
+                  >
+                    {isLoggingOut ? "Logging out..." : "Log Out"}
+                  </button>
                 </li>
               </ul>
             </li>

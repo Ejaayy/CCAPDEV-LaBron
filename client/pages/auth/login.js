@@ -1,210 +1,332 @@
-import loginStyles from './login.module.css';
-import { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useState } from "react";
+import { useRouter } from "next/router";
+import loginStyles from "./login.module.css";
+import { login, register } from "@/lib/auth";
 
 export default function Login() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const router = useRouter();
 
-    // State for Login
-    const [loginEmail, setLoginEmail] = useState('');
-    const [loginPassword, setLoginPassword] = useState('');
+  // controls whether the register modal is visible or hidden
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // State for Registration
-    const [regData, setRegData] = useState({
-        fname: '',
-        lname: '',
-        email: '',
-        idNum: '',
-        pass1: '',
-        pass2: '',
-        role: 'student' // default role
-    });
+  // allows redirecting user to another page after login
+  const router = useRouter();
 
-    const toggleModal = () => setIsModalOpen(!isModalOpen);
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setRegData(prev => ({ ...prev, [name]: value }));
-    };
+  // stores the user's login email input
+  const [loginEmail, setLoginEmail] = useState("");
 
-    // registration
-    const handleRegister = async (e) => {
-        e.preventDefault();
+  // stores the user's login password input
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
 
-        if (regData.pass1 !== regData.pass2) {
-            alert("Passwords do not match!");
-            return;
-        }
 
-        try {
-            const response = await fetch('http://localhost:3001/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: regData.email,
-                    password: regData.pass1, // Plain text as per MCO2 guidelines
-                    firstName: regData.fname,
-                    lastName: regData.lname,
-                    idNumber: regData.idNum,
-                    role: regData.role
-                }),
-            });
+  // stores ALL registration form data in one object
+  // easier than making separate states for each input
+  const [regData, setRegData] = useState({
+    fname: "",
+    lname: "",
+    email: "",
+    idNum: "",
+    pass1: "",
+    pass2: "",
+    role: "student", // default role
+  });
 
-            const data = await response.json();
-            if (response.ok) {
-                alert("Registration successful! You can now log in.");
-                toggleModal();
-            } else {
-                alert(data.message || "Registration failed.");
-            }
-        } catch (error) {
-            console.error("Registration error:", error);
-        }
-    };
 
-    // login
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetch('http://localhost:3001/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: loginEmail,
-                    password: loginPassword
-                }),
-                credentials: 'include',
-            });
+  // toggles the register modal open/close
+  const toggleModal = () => setIsModalOpen((prev) => !prev);
 
-            const data = await response.json();
 
-            if (response.ok) {
-                //differentiation sa login
-                console.log(data)
-                console.log(data.role)
-                if (data.role === 'technician') {
-                    router.push('/home-tech');
-                } else {
-                    router.push('/home');
-                }
-            } else {
-                alert(data.message || "Invalid credentials.");
-            }
-        } catch (error) {
-            console.error("Login error:", error);
-            alert("Server error. Please try again later.");
-        }
-    };
+  // updates whichever input field the user types in
+  // uses the "name" attribute to know which property to update
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
 
-    return (
-        <>
-            <div style={{ position: "relative", backgroundColor: "#070B20", display: "flex" }}>
-                {/* Registration Modal */}
-                {isModalOpen && (
-                    <div className={loginStyles.signUpModal}>
-                        <div className={loginStyles.backButtonContainer}>
-                            <span onClick={toggleModal} className={loginStyles.backButton}>&lt;</span>
-                        </div>
-                        <h1>Register Account</h1>
-                        <h6>Join LabKoTo now!</h6>
+    setRegData((prev) => ({
+      ...prev,        // keeps previous values
+      [name]: value,  // updates only the changed field
+    }));
+  };
 
-                        <form onSubmit={handleRegister}>
-                            <div className={loginStyles.formLayout}>
-                                <div className={loginStyles.inputLayout}>
-                                    <div style={{ display: 'flex', gap: '16px' }}>
-                                        <div className={loginStyles.formBreak}>
-                                            <label className={loginStyles.formLabels} htmlFor="fname">First Name</label><br />
-                                            <input className={loginStyles.inputboxes} type="text" name="fname" value={regData.fname} onChange={handleInputChange} required />
-                                        </div>
-                                        <div className={loginStyles.formBreak}>
-                                            <label className={loginStyles.formLabels} htmlFor="lname">Last Name</label><br />
-                                            <input className={loginStyles.inputboxes} type="text" name="lname" value={regData.lname} onChange={handleInputChange} required />
-                                        </div>
-                                    </div>
 
-                                    <div className={loginStyles.formBreak}>
-                                        <label className={loginStyles.formLabels} htmlFor="email">DLSU Email Address</label><br />
-                                        <input className={loginStyles.inputboxes} style={{ width: '100%' }} type="email" name="email" value={regData.email} onChange={handleInputChange} required /><br />
-                                    </div>
+  // handles register form submission
+  async function handleRegister(e) {
 
-                                    <div className={loginStyles.formBreak}>
-                                        <label className={loginStyles.formLabels} htmlFor="idNum">ID Number</label><br />
-                                        <input className={loginStyles.inputboxes} style={{ width: '100%' }} type="text" name="idNum" value={regData.idNum} onChange={handleInputChange} required /><br />
-                                    </div>
+    // prevents page refresh when form is submitted
+    e.preventDefault();
 
-                                    <div className={loginStyles.formBreak}>
-                                        <label className={loginStyles.formLabels} htmlFor="pass1">Password</label><br />
-                                        <input className={loginStyles.inputboxes} style={{ width: '100%' }} type="password" name="pass1" value={regData.pass1} onChange={handleInputChange} required /><br />
-                                    </div>
 
-                                    <div className={loginStyles.formBreak}>
-                                        <label className={loginStyles.formLabels} htmlFor="pass2">Re-enter Password</label><br />
-                                        <input className={loginStyles.inputboxes} style={{ width: '100%' }} type="password" name="pass2" value={regData.pass2} onChange={handleInputChange} required /><br />
-                                    </div>
-                                </div>
-                                <div>
-                                    <button type="submit" className={loginStyles.confirmButton}>Register</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                )}
+    // simple validation: passwords must match
+    if (regData.pass1 !== regData.pass2) {
+      alert("Passwords do not match!");
+      return;
+    }
 
-                {/* Left Side: Branding */}
-                <div style={{ position: "relative" }}>
-                    <img src="../../../curves.png" style={{ height: "100vh", width: "100vh" }} alt="curves" />
-                    <h1 className='brand-text' style={{ position: "absolute", top: "45%", left: "30%", fontSize: "80px" }}>LabKoTo</h1>
+    try {
+
+      // send registration data to backend
+      await register({
+        email: regData.email,
+        password: regData.pass1,
+        firstName: regData.fname,
+        lastName: regData.lname,
+        idNumber: regData.idNum,
+        role: regData.role,
+      });
+
+      // notify user of success
+      alert("Registration successful! You can now log in.");
+
+      // close the register modal
+      toggleModal();
+
+    } catch (error) {
+
+      // prints error in browser console
+      console.error("Registration error:", error);
+
+      // shows error message to user
+      alert(error.message || "Registration failed.");
+    }
+  }
+
+
+  // handles login form submission
+  async function handleLogin(e) {
+
+    // prevents page refresh
+    e.preventDefault();
+    setLoginError("");
+
+    try {
+
+      // send login credentials to backend
+      const data = await login({
+        email: loginEmail,
+        password: loginPassword,
+      });
+
+      // redirect depending on user role
+      // technician goes to tech dashboard
+      if (data.role === "technician") {
+        router.push("/home-tech");
+
+      // normal users go to regular home page
+      } else {
+        router.push("/home");
+      }
+
+    } catch (error) {
+      if (error.status !== 401) {
+        console.error("Login error:", error);
+      }
+      setLoginError(error.message || "Invalid credentials.");
+    }
+  }
+
+  return (
+    <div style={{ position: "relative", backgroundColor: "#070B20", display: "flex" }}>
+      {isModalOpen && (
+        <div className={loginStyles.signUpModal}>
+          <div className={loginStyles.backButtonContainer}>
+            <span onClick={toggleModal} className={loginStyles.backButton}>
+              &lt;
+            </span>
+          </div>
+
+          <h1>Register Account</h1>
+          <h6>Join LabKoTo now!</h6>
+
+          <form onSubmit={handleRegister}>
+            <div className={loginStyles.formLayout}>
+              <div className={loginStyles.inputLayout}>
+                <div style={{ display: "flex", gap: "16px" }}>
+                  <div className={loginStyles.formBreak}>
+                    <label className={loginStyles.formLabels} htmlFor="fname">
+                      First Name
+                    </label>
+                    <br />
+                    <input
+                      className={loginStyles.inputboxes}
+                      type="text"
+                      name="fname"
+                      value={regData.fname}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className={loginStyles.formBreak}>
+                    <label className={loginStyles.formLabels} htmlFor="lname">
+                      Last Name
+                    </label>
+                    <br />
+                    <input
+                      className={loginStyles.inputboxes}
+                      type="text"
+                      name="lname"
+                      value={regData.lname}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
                 </div>
 
-                {/* Right Side: Login Form */}
-                <div style={{ position: "relative", width: "100%", backgroundColor: "#FFFFFF" }}>
-                    <img src="../../../laboratoryPhoto.png" style={{ height: "100%", width: "100%" }} alt="lab" />
-                    <div className={`${loginStyles['form-container']}`}>
-                        <h1>Login</h1>
-                        <h3>Welcome back! Please login to your account</h3>
-
-                        <form className={loginStyles.labelSpacing} onSubmit={handleLogin}>
-                            <label className={loginStyles.textLabels}>Email Address</label>
-                            <br />
-                            <input
-                                className={loginStyles.inputBox}
-                                type="text"
-                                value={loginEmail}
-                                onChange={(e) => setLoginEmail(e.target.value)}
-                                required
-                            />
-                            <br />
-                            <label className={`${loginStyles.textLabels} ${loginStyles.labelSpacing}`}>Password</label>
-                            <br />
-                            <input
-                                className={loginStyles.inputBox}
-                                type="password"
-                                value={loginPassword}
-                                onChange={(e) => setLoginPassword(e.target.value)}
-                                required
-                            />
-                            <br />
-
-                            <div className={loginStyles.rememberMeRow}>
-                                <label className={loginStyles.rememberMeLabel}>
-                                    <input type="checkbox" className={loginStyles.rememberMeCheckbox} />
-                                    Remember Me
-                                </label>
-                                <label className={loginStyles.forgotPassword}>Forgot Password?</label>
-                            </div>
-
-                            <div className={loginStyles.subModule}>
-                                <input className={loginStyles.confirmButton} type="submit" value="Log In" />
-                                <br />
-                                <label className={`${loginStyles.textLabels} ${loginStyles.newUser}`}>New User?
-                                    <span onClick={toggleModal} className={loginStyles.userSignUp} style={{ cursor: 'pointer' }}> Sign Up</span>
-                                </label>
-                            </div>
-                        </form>
-                    </div>
+                <div className={loginStyles.formBreak}>
+                  <label className={loginStyles.formLabels} htmlFor="email">
+                    DLSU Email Address
+                  </label>
+                  <br />
+                  <input
+                    className={loginStyles.inputboxes}
+                    style={{ width: "100%" }}
+                    type="email"
+                    name="email"
+                    value={regData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <br />
                 </div>
+
+                <div className={loginStyles.formBreak}>
+                  <label className={loginStyles.formLabels} htmlFor="idNum">
+                    ID Number
+                  </label>
+                  <br />
+                  <input
+                    className={loginStyles.inputboxes}
+                    style={{ width: "100%" }}
+                    type="text"
+                    name="idNum"
+                    value={regData.idNum}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <br />
+                </div>
+
+                <div className={loginStyles.formBreak}>
+                  <label className={loginStyles.formLabels} htmlFor="pass1">
+                    Password
+                  </label>
+                  <br />
+                  <input
+                    className={loginStyles.inputboxes}
+                    style={{ width: "100%" }}
+                    type="password"
+                    name="pass1"
+                    value={regData.pass1}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <br />
+                </div>
+
+                <div className={loginStyles.formBreak}>
+                  <label className={loginStyles.formLabels} htmlFor="pass2">
+                    Re-enter Password
+                  </label>
+                  <br />
+                  <input
+                    className={loginStyles.inputboxes}
+                    style={{ width: "100%" }}
+                    type="password"
+                    name="pass2"
+                    value={regData.pass2}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <br />
+                </div>
+              </div>
+
+              <div>
+                <button type="submit" className={loginStyles.confirmButton}>
+                  Register
+                </button>
+              </div>
             </div>
-        </>
-    );
+          </form>
+        </div>
+      )}
+
+      <div style={{ position: "relative" }}>
+        <img src="../../../curves.png" style={{ height: "100vh", width: "100vh" }} alt="curves" />
+        <h1
+          className="brand-text"
+          style={{ position: "absolute", top: "45%", left: "30%", fontSize: "80px" }}
+        >
+          LabKoTo
+        </h1>
+      </div>
+
+      <div style={{ position: "relative", width: "100%", backgroundColor: "#FFFFFF" }}>
+        <img src="../../../laboratoryPhoto.png" style={{ height: "100%", width: "100%" }} alt="lab" />
+
+        <div className={loginStyles["form-container"]}>
+          <h1>Login</h1>
+          <h3>Welcome back! Please login to your account</h3>
+
+          <form className={loginStyles.labelSpacing} onSubmit={handleLogin}>
+            <label className={loginStyles.textLabels}>Email Address</label>
+            <br />
+            <input
+              className={loginStyles.inputBox}
+              type="text"
+              value={loginEmail}
+              onChange={(e) => {
+                setLoginEmail(e.target.value);
+                if (loginError) setLoginError("");
+              }}
+              required
+            />
+            <br />
+
+            <label className={`${loginStyles.textLabels} ${loginStyles.labelSpacing}`}>
+              Password
+            </label>
+            <br />
+            <input
+              className={loginStyles.inputBox}
+              type="password"
+              value={loginPassword}
+              onChange={(e) => {
+                setLoginPassword(e.target.value);
+                if (loginError) setLoginError("");
+              }}
+              required
+            />
+            <br />
+
+            {loginError && <p className={loginStyles.errorMessage}>{loginError}</p>}
+
+            <div className={loginStyles.rememberMeRow}>
+              <label className={loginStyles.rememberMeLabel}>
+                <input type="checkbox" className={loginStyles.rememberMeCheckbox} />
+                Remember Me
+              </label>
+              <label className={loginStyles.forgotPassword}>Forgot Password?</label>
+            </div>
+
+            <div className={loginStyles.subModule}>
+              <input className={loginStyles.confirmButton} type="submit" value="Log In" />
+              <br />
+              <label className={`${loginStyles.textLabels} ${loginStyles.newUser}`}>
+                New User?
+                <span
+                  onClick={toggleModal}
+                  className={loginStyles.userSignUp}
+                  style={{ cursor: "pointer" }}
+                >
+                  {" "}
+                  Sign Up
+                </span>
+              </label>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
 }

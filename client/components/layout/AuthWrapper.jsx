@@ -1,31 +1,24 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import useAuth from "@/hooks/useAuth";
 
 export default function AuthWrapper({ children }) {
-    const router = useRouter();
-    const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const { user, loading } = useAuth();
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const response = await fetch('http://localhost:3001/api/auth/me', {
-                    method: 'GET',
-                    credentials: 'include',
-                });
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/auth/login");
+    }
+  }, [loading, user, router]);
 
-                if (response.status === 401) {
-                    router.push('/auth/login');
-                } else {
-                    setIsLoading(false); // User is fine, stop loading
-                }
-            } catch (err) {
-                router.push('/auth/login');
-            }
-        };
-        checkAuth();
-    }, [router]);
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-    if (isLoading) return <div>Loading...</div>; // Prevent flash of private content
+  if (!user) {
+    return null;
+  }
 
-    return children;
+  return children;
 }

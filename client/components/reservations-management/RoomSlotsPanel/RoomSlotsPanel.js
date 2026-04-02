@@ -2,19 +2,7 @@ import { useState, useEffect } from "react";
 import Slot from "../Slot/Slot";
 import AddSlotForm from "../AddSlotForm/AddSlotForm";
 import styles from "./RoomSlotsPanel.module.css";
-
-const API_BASE = "http://localhost:3001/api";
-
-async function safeJson(res) {
-  const text = await res.text();
-  const ct = res.headers.get("content-type") || "";
-  if (!ct.includes("application/json")) return null;
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
-}
+import { getSlotOccupancy } from "@/lib/slots";
 
 export default function RoomSlotsPanel({
   lab,
@@ -28,15 +16,13 @@ export default function RoomSlotsPanel({
 
   useEffect(() => {
     if (!slots?.length) {
-      setOccupancies({});
       return;
     }
     const fetchAll = async () => {
       const results = await Promise.all(
         slots.map(async (s) => {
           try {
-            const res = await fetch(`${API_BASE}/slots/${s._id}/occupancy`);
-            const data = await safeJson(res);
+            const data = await getSlotOccupancy(s._id);
             const count = data
               ? Array.isArray(data)
                 ? data.length
