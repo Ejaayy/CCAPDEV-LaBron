@@ -1,6 +1,7 @@
 const Reservation = require('../model/reservation.model');
 const Lab = require('../model/Lab');
 const Slot = require('../model/slot.model');
+const { canCancelNoShow, getNoShowDeadline } = require("../utils/slotRules");
 
 exports.createReservation = async (reservationData) => {
     const reservation = new Reservation(reservationData);
@@ -231,5 +232,42 @@ exports.getAvailabilityStats = async () => {
 
     const roomsAvailable = availableRoomsSet.size;
     return { roomsAvailable, slotsAvailable };
+};
+
+exports.cancelNoShowReservation = async (reservationId, actor) => {
+    if (!actor?.userId || actor.role !== "technician") {
+        throw new Error("Only technicians can remove no-show reservations.");
+    }
+
+    const reservation = await Reservation.findById(reservationId).populate("slots.slot");
+
+    if (!reservation) {
+        throw new Error("Reservation not found");
+    }
+
+    if (reservation.status !== "active") {
+        throw new Error("Only active reservations can be cancelled.");
+    }
+
+    const firstSlot = reservation.slots?.[0]?.slot;
+    if (!firstSlot) {
+        throw new Error("Reservation slot information is missing.");
+    }
+
+    if (!canCancelNoShow(firstSlot)) {
+        const deadline = getNoShowDeadline(firstSlot);
+        throw new Error(
+            `No-show cancellation is only allowed within 10 minutes after the slot starts. Window ends at ${deadline.toLocaleTimeString("en-PH", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+                timeZone: "Asia/Manila",
+            })}.`
+        );
+    }
+
+    reservation.status = "cancelled";
+    await reservation.save();
+    return reservation;
 };
 

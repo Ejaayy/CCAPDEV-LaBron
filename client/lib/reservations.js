@@ -28,3 +28,9 @@ export function deleteReservation(reservationId) {
     method: "DELETE",
   });
 }
+
+export function cancelNoShowReservation(reservationId) {
+  return apiJson(`/reservations/${reservationId}/no-show`, {
+    method: "DELETE",
+  });
+}

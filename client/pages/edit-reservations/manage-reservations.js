@@ -14,7 +14,7 @@ import styles from "./ManageReservations.module.css";
 import useAuth from "@/hooks/useAuth";
 import useLabs from "@/hooks/useLabs";
 import { useSlotsByDate } from "@/hooks/useSlots";
-import { createReservation, deleteReservation } from "@/lib/reservations";
+import { cancelNoShowReservation, createReservation } from "@/lib/reservations";
 import { createSlot, getSlotOccupancy } from "@/lib/slots";
 import { createLab } from "@/lib/labs";
 
@@ -90,6 +90,8 @@ export default function ManageReservations() {
             students,
             isBlocked: !slot.isAvailable,
             status: !slot.isAvailable ? "blocked" : undefined,
+            canCancelNoShow: Boolean(data?.canCancelNoShow),
+            noShowWindowEndsAt: data?.noShowWindowEndsAt || null,
           },
         });
       } catch (err) {
@@ -187,7 +189,7 @@ export default function ManageReservations() {
     }));
 
     try {
-      await deleteReservation(reservationId);
+      await cancelNoShowReservation(reservationId);
     } catch (err) {
       console.error("Failed to remove student:", err);
       alert(err.message || "Failed to remove student. Reverting changes.");

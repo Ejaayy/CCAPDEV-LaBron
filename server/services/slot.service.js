@@ -1,5 +1,11 @@
 const Slot = require("../model/slot.model");
 const Reservation = require("../model/reservation.model");
+const {
+    validateThirtyMinuteSlot,
+    parseTimeToMinutes,
+    canCancelNoShow,
+    getNoShowDeadline,
+} = require("../utils/slotRules");
 
 
 exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
@@ -11,8 +17,24 @@ exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
 };
 
 exports.createSlot = async (slotData) => {
+    const { lab, date, startTime, endTime } = slotData;
+    const { startMinutes, endMinutes } = validateThirtyMinuteSlot(startTime, endTime);
+
+    const existingSlots = await Slot.find({ lab, date });
+
+    const hasOverlap = existingSlots.some((existingSlot) => {
+        const existingStart = parseTimeToMinutes(existingSlot.startTime);
+        const existingEnd = parseTimeToMinutes(existingSlot.endTime);
+        return startMinutes < existingEnd && endMinutes > existingStart;
+    });
+
+    if (hasOverlap) {
+        throw new Error("This slot overlaps with an existing slot for the selected room.");
+    }
+
     const slot = new Slot(slotData);
-    return await slot.save();
+    await slot.save();
+    return await Slot.findById(slot._id).populate("lab");
 };
 
 exports.getWeeklyCount = async (startDate, daysCount = 7) => {
@@ -53,6 +75,11 @@ exports.getReservedSeatsForSlot = async (slotId) => {
 };
 
 exports.getSlotReservationDetails = async (slotId) => {
+    const slot = await Slot.findById(slotId);
+    if (!slot) {
+        throw new Error("Slot not found");
+    }
+
     const reservations = await Reservation.find({
         "slots.slot": slotId,
         status: "active",
@@ -84,7 +111,12 @@ exports.getSlotReservationDetails = async (slotId) => {
             });
     });
 
-    return { occupiedSeats, reservations: reservationDetails };
+    return {
+        occupiedSeats,
+        reservations: reservationDetails,
+        canCancelNoShow: canCancelNoShow(slot),
+        noShowWindowEndsAt: getNoShowDeadline(slot).toISOString(),
+    };
 };
 
 exports.updateSlotAvailability = async (slotId, isAvailable) => {

@@ -276,3 +276,15 @@
 .removeBtn:hover {
   background: #DC2626;
 }
+
+.removeBtn:disabled {
+  background: #64748B;
+  cursor: not-allowed;
+}
+
+.noShowHint {
+  color: #94A3B8;
+  font-size: 12px;
+  margin-top: 0;
+  margin-bottom: 16px;
+}

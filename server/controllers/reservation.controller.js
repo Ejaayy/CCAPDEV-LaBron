@@ -123,3 +123,22 @@ exports.deleteReservation = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.cancelNoShowReservation = async (req, res) => {
+    try {
+        const { reservationId } = req.params;
+
+        const result = await reservationService.cancelNoShowReservation(reservationId, {
+            userId: req.session.userId,
+            role: req.session.role,
+        });
+
+        res.status(200).json({
+            message: "Reservation cancelled as no-show.",
+            reservationId: result._id,
+        });
+    } catch (error) {
+        const status = error.message === "Reservation not found" ? 404 : 400;
+        res.status(status).json({ message: error.message });
+    }
+};
