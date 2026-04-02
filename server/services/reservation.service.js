@@ -1,7 +1,7 @@
 const Reservation = require('../model/reservation.model');
 const Lab = require('../model/Lab');
 const Slot = require('../model/slot.model');
-const { canCancelNoShow, getNoShowDeadline } = require("../utils/slotRules");
+const { canCancelNoShow, getNoShowDeadline, getSlotEndDateTime } = require("../utils/slotRules");
 
 exports.createReservation = async (reservationData) => {
     const reservation = new Reservation(reservationData);
@@ -255,9 +255,15 @@ exports.cancelNoShowReservation = async (reservationId, actor) => {
     }
 
     if (!canCancelNoShow(firstSlot)) {
-        const deadline = getNoShowDeadline(firstSlot);
+        const graceEndsAt = getNoShowDeadline(firstSlot);
+        const slotEndsAt = getSlotEndDateTime(firstSlot);
         throw new Error(
-            `No-show cancellation is only allowed within 10 minutes after the slot starts. Window ends at ${deadline.toLocaleTimeString("en-PH", {
+            `No-show cancellation is only allowed after the first 10 minutes of the slot and before it ends. Grace period ends at ${graceEndsAt.toLocaleTimeString("en-PH", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+                timeZone: "Asia/Manila",
+            })}, and the slot ends at ${slotEndsAt.toLocaleTimeString("en-PH", {
                 hour: "2-digit",
                 minute: "2-digit",
                 hour12: true,

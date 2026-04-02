@@ -31,10 +31,14 @@ function getNoShowDeadline(slot) {
     return new Date(slotStart.getTime() + NO_SHOW_GRACE_MINUTES * 60 * 1000);
 }
 
+function getSlotEndDateTime(slot) {
+    return buildSlotDateTime(slot.date, slot.endTime);
+}
+
 function canCancelNoShow(slot, now = new Date()) {
-    const slotStart = buildSlotDateTime(slot.date, slot.startTime);
     const deadline = getNoShowDeadline(slot);
-    return now >= slotStart && now <= deadline;
+    const slotEnd = getSlotEndDateTime(slot);
+    return now >= deadline && now < slotEnd;
 }
 
 module.exports = {
@@ -44,5 +48,6 @@ module.exports = {
     parseTimeToMinutes,
     buildSlotDateTime,
     getNoShowDeadline,
+    getSlotEndDateTime,
     canCancelNoShow,
 };

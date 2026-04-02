@@ -5,6 +5,7 @@ const {
     parseTimeToMinutes,
     canCancelNoShow,
     getNoShowDeadline,
+    getSlotEndDateTime,
 } = require("../utils/slotRules");
 
 
@@ -115,7 +116,8 @@ exports.getSlotReservationDetails = async (slotId) => {
         occupiedSeats,
         reservations: reservationDetails,
         canCancelNoShow: canCancelNoShow(slot),
-        noShowWindowEndsAt: getNoShowDeadline(slot).toISOString(),
+        noShowEligibleAt: getNoShowDeadline(slot).toISOString(),
+        noShowCutoffAt: getSlotEndDateTime(slot).toISOString(),
     };
 };
 

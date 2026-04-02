@@ -3,8 +3,16 @@ import styles from "./Panel.module.css";
 export default function Panel({ selectedSlot, onOpenStudentSelector, removeStudent, onBack }) {
   const { room, slot } = selectedSlot;
 
-  const noShowDeadlineLabel = slot.noShowWindowEndsAt
-    ? new Date(slot.noShowWindowEndsAt).toLocaleTimeString("en-PH", {
+  const noShowEligibleLabel = slot.noShowEligibleAt
+    ? new Date(slot.noShowEligibleAt).toLocaleTimeString("en-PH", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : null;
+
+  const noShowCutoffLabel = slot.noShowCutoffAt
+    ? new Date(slot.noShowCutoffAt).toLocaleTimeString("en-PH", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
@@ -26,8 +34,9 @@ export default function Panel({ selectedSlot, onOpenStudentSelector, removeStude
         </button>
       
       <p className={styles.noShowHint}>
-        Technicians can mark students as no-show only within 10 minutes after the slot starts.
-        {noShowDeadlineLabel ? ` Window ends at ${noShowDeadlineLabel}.` : ""}
+        Students have a 10-minute grace period to show up. Technicians can mark a reservation as no-show only after that grace period and before the slot ends.
+        {noShowEligibleLabel ? ` Grace period ends at ${noShowEligibleLabel}.` : ""}
+        {noShowCutoffLabel ? ` Cutoff is ${noShowCutoffLabel}.` : ""}
       </p>
 
       <div className={styles.studentList}>
@@ -42,7 +51,7 @@ export default function Panel({ selectedSlot, onOpenStudentSelector, removeStude
                 title={
                   slot.canCancelNoShow
                     ? "Cancel entire reservation as no-show"
-                    : "No-show cancellation is only allowed in the first 10 minutes of the slot"
+                    : "No-show cancellation is only allowed after the 10-minute grace period and before the slot ends"
                 }
               >
                 Mark No-Show

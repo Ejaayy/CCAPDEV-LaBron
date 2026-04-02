@@ -91,7 +91,8 @@ export default function ManageReservations() {
             isBlocked: !slot.isAvailable,
             status: !slot.isAvailable ? "blocked" : undefined,
             canCancelNoShow: Boolean(data?.canCancelNoShow),
-            noShowWindowEndsAt: data?.noShowWindowEndsAt || null,
+            noShowEligibleAt: data?.noShowEligibleAt || null,
+            noShowCutoffAt: data?.noShowCutoffAt || null,
           },
         });
       } catch (err) {
