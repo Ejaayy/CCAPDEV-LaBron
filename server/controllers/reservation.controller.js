@@ -142,3 +142,20 @@ exports.cancelNoShowReservation = async (req, res) => {
         res.status(status).json({ message: error.message });
     }
 };
+
+exports.addSeatsToReservation = async (req, res) => {
+    try {
+        const { reservationId } = req.params;
+        const { seats } = req.body; // array of seat strings 
+
+        if (!seats || !Array.isArray(seats)) {
+            return res.status(400).json({ message: "Invalid seats format. Expected an array." });
+        }
+
+        const updatedReservation = await reservationService.addSeats(reservationId, seats);
+        res.status(200).json({ message: "Seats updated successfully", reservation: updatedReservation });
+    } catch (error) {
+        console.error("Update seats error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};

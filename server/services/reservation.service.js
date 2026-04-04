@@ -77,7 +77,9 @@ exports.getUserReservations = async (userId) => {
             reservationTime: slotInfo ? `${formatTime12h(slotInfo.startTime)} - ${formatTime12h(slotInfo.endTime)}` : "N/A",
             requestDateTime: reqDateFormatted,
             rawDate: slotInfo ? slotInfo.date : null ,
-            _sortTimestamp: sortTimeStamp
+            _sortTimestamp: sortTimeStamp,
+            slotId: slotInfo ? slotInfo._id.toString() : null,
+            availableSeats: labInfo && labInfo.seats ? labInfo.seats : [],
         };  
     });
     formattedReservations.sort((a, b) => a._sortTimestamp - b._sortTimestamp);
@@ -277,3 +279,24 @@ exports.cancelNoShowReservation = async (reservationId, actor) => {
     return reservation;
 };
 
+exports.addSeats = async (reservationId, newSeatArray) => {
+    const reservation = await Reservation.findById(reservationId);
+    
+    if (!reservation) {
+        throw new Error("Reservation not found");
+    }
+
+    // Grab the Slot ID from the existing reservation
+    const existingSlotId = reservation.slots[0].slot;
+
+    // Convert the array of strings ["A1", "A2"] to mongoose format
+    const updatedSlots = newSeatArray.map(seatLabel => ({
+        slot: existingSlotId,
+        seat: seatLabel
+    }));
+
+    // Overwrite list
+    reservation.slots = updatedSlots;
+    
+    return await reservation.save();
+};

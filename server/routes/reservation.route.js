@@ -10,6 +10,7 @@ router.get('/my-stats', reservationController.getMyStats);
 
 router.get('/available-stats', reservationController.getAvailabilityStats);
 router.get('/user/:id', reservationController.getUserPublicReservations);
+router.patch('/:reservationId/seats', reservationController.addSeatsToReservation);
 router.delete('/:reservationId/no-show', reservationController.cancelNoShowReservation);
 router.delete('/:reservationId', reservationController.deleteReservation);
 

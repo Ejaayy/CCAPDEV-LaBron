@@ -10,6 +10,9 @@ export function useMyReservations() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0); 
+  const refetch = () => setRefreshTrigger(prev => prev + 1);
+
   useEffect(() => {
     let active = true;
 
@@ -37,9 +40,9 @@ export function useMyReservations() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [refreshTrigger]); 
 
-  return { reservations, loading, error, setReservations };
+  return { reservations, loading, error, setReservations, refetch }; 
 }
 
 export function useMyStats() {

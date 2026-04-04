@@ -140,3 +140,27 @@
   border-color: #2c3e50;
   background-color: #6da5ff;
 }
+
+.boxYours {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #6366F1;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+ 
+.seatYours {
+  background: #4547b2;
+  border: 2px solid #4345c4;
+  color: #ffffff;
+  cursor: default;
+  font-weight: 600;
+}
+
+ 
+.lockedText {
+  color: #9597f5;
+  font-weight: 600;
+}
