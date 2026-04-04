@@ -186,16 +186,50 @@ exports.cancelNoShowReservation = async (req, res) => {
 exports.addSeatsToReservation = async (req, res) => {
     try {
         const { reservationId } = req.params;
-        const { seats } = req.body; // array of seat strings 
+        const { seats } = req.body; 
 
         if (!seats || !Array.isArray(seats)) {
             return res.status(400).json({ message: "Invalid seats format. Expected an array." });
         }
 
         const updatedReservation = await reservationService.addSeats(reservationId, seats);
+        
         res.status(200).json({ message: "Seats updated successfully", reservation: updatedReservation });
+
+        // Fetch the user email 
+        const user = await User.findById(updatedReservation.reservedFor);
+
+        const populatedReservation = await Reservation.findById(updatedReservation._id).populate({
+            path: 'slots.slot',
+            populate: { path: 'lab' }
+        });
+
+        if (user && user.email && populatedReservation && populatedReservation.slots.length > 0) {
+            const firstSlot = populatedReservation.slots[0].slot;
+            
+            const formatTime12h = (time24) => {
+                if (!time24) return "N/A";
+                const [hour, minute] = time24.split(':');
+                const h = parseInt(hour, 10);
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                return `${(h % 12 || 12).toString().padStart(2, '0')}:${minute} ${ampm}`;
+            };
+
+            const timeString = `${formatTime12h(firstSlot.startTime)} - ${formatTime12h(firstSlot.endTime)}`;
+            const seatString = populatedReservation.slots.map(s => s.seat).join(", ");
+
+            emailService.sendUpdateEmail(user.email, {
+                laboratory: firstSlot.lab ? firstSlot.lab.name : "Unknown Lab",
+                rawDate: firstSlot.date,
+                reservationTime: timeString,
+                seats: seatString
+            });
+        }
+
     } catch (error) {
-        console.error("Update seats error:", error);
-        res.status(500).json({ message: error.message });
+        if (!res.headersSent) {
+            console.error("Update seats error:", error);
+            res.status(500).json({ message: error.message });
+        }
     }
 };
