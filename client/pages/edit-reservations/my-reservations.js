@@ -1,362 +1,92 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 
 import HomeNavbar from "@/components/layout/HomeNavbar/HomeNavbar";
-import TopBar from "@/components/reservations-management/TopBar/TopBar";
-import LabCard from "@/components/reservations-management/LabCard/LabCard";
-import RoomSlotsPanel from "@/components/reservations-management/RoomSlotsPanel/RoomSlotsPanel";
-import Panel from "@/components/reservations-management/Panel/Panel";
-import SelectStudent from "@/components/dashboard/student/SelectStudents";
-import SeatSelector from "@/components/reservation/SeatSelector/SeatSelector";
-import styles from "./ManageReservations.module.css";
-
+import ReservationCard from "@/components/reservations-management/ReservationCard/ReservationCard";
 import useAuth from "@/hooks/useAuth";
-import useLabs from "@/hooks/useLabs";
-import { useSlotsByDate } from "@/hooks/useSlots";
-import { cancelNoShowReservation, createReservation } from "@/lib/reservations";
-import { createSlot, getSlotOccupancy } from "@/lib/slots";
+import { useMyReservations } from "@/hooks/useReservations";
+import styles from "./MyReservations.module.css";
 
-export default function ManageReservations() {
+function sortReservationsByStart(reservations) {
+  return [...reservations].sort((a, b) => {
+    const getTimestamp = (dateStr, timeStr) => {
+      if (!dateStr || !timeStr || timeStr === "N/A") return Infinity;
+      const startTime = timeStr.split(" - ")[0];
+      return new Date(`${dateStr} ${startTime}`).getTime();
+    };
+
+    return getTimestamp(a.rawDate, a.reservationTime) - getTimestamp(b.rawDate, b.reservationTime);
+  });
+}
+
+export default function MyReservations() {
   const router = useRouter();
-  const buildingQuery =
-    router.isReady && typeof router.query.building === "string"
-      ? router.query.building
-      : "";
-
   const { user, loading: userLoading } = useAuth();
-  const { labs, loading: labsLoading } = useLabs();
+  const { reservations, loading } = useMyReservations();
 
-  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [searchInput, setSearchInput] = useState("");
-  const [hasTouchedSearch, setHasTouchedSearch] = useState(false);
-  const [selectedLab, setSelectedLab] = useState(null);
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [isStudentSelectorOpen, setIsStudentSelectorOpen] = useState(false);
-
-  const [pendingStudent, setPendingStudent] = useState(null);
-  const [pendingSeats, setPendingSeats] = useState([]);
-
-  const {
-    slots,
-    loading: slotsLoading,
-    setSlots,
-  } = useSlotsByDate(date, { all: true });
-
-  const search = hasTouchedSearch ? searchInput : buildingQuery;
+  const isAutoSelect = router.query.autoSelect === "true";
 
   useEffect(() => {
-    if (!userLoading && user && user.role !== "technician") {
-      router.push("/home");
+    if (!userLoading && !user) {
+      router.push("/auth/login");
+      return;
+    }
+
+    if (!userLoading && user?.role !== "student") {
+      router.push(user?.role === "technician" ? "/edit-reservations/manage-reservations" : "/home");
     }
   }, [userLoading, user, router]);
 
-  const filteredLabs = useMemo(() => {
-    const q = search.toLowerCase();
+  const sortedReservations = useMemo(() => {
+    return sortReservationsByStart(reservations);
+  }, [reservations]);
 
-    return labs.filter((lab) => {
-      return (
-        (lab.name || "").toLowerCase().includes(q) ||
-        (lab.location || "").toLowerCase().includes(q)
-      );
-    });
-  }, [labs, search]);
+  const displayReservations =
+    isAutoSelect && sortedReservations.length > 0
+      ? [sortedReservations[0]]
+      : sortedReservations;
 
-  const slotsForSelectedLab = useMemo(() => {
-    if (!selectedLab) return [];
-    return slots.filter((slot) => slot.lab?._id === selectedLab._id);
-  }, [slots, selectedLab]);
+  function editReservation(id) {
+    router.push(`/reserve?edit=${id}`);
+  }
 
-  const handleLabClick = (lab) => {
-    setSelectedLab(lab);
-    setSelectedSlot(null);
-  };
+  if (userLoading || loading) {
+    return <div className={styles.pageWrapper}>Loading...</div>;
+  }
 
-  const handleSlotClick = useCallback(
-    async (slot) => {
-      const lab = slot.lab || selectedLab;
-      if (!lab) return;
-
-      try {
-        const data = await getSlotOccupancy(slot._id, { details: true });
-        const students = data?.reservations || [];
-
-        setSelectedSlot({
-          room: lab,
-          slot: {
-            ...slot,
-            time: `${slot.startTime || ""} - ${slot.endTime || ""}`.trim(),
-            students,
-            isBlocked: !slot.isAvailable,
-            status: !slot.isAvailable ? "blocked" : undefined,
-            canCancelNoShow: Boolean(data?.canCancelNoShow),
-            noShowWindowEndsAt: data?.noShowWindowEndsAt || null,
-          },
-        });
-      } catch (err) {
-        console.error("Failed to fetch slot details:", err);
-      }
-    },
-    [selectedLab]
-  );
-
-  const handleAddSlot = useCallback(
-    async ({ startTime, endTime }) => {
-      if (!selectedLab || !date) return;
-
-      try {
-        const createdSlot = await createSlot({
-          lab: selectedLab._id,
-          date,
-          startTime,
-          endTime,
-        });
-
-        setSlots((prev) =>
-          [...prev, { ...createdSlot, lab: selectedLab }].sort((a, b) =>
-            (a.startTime || "").localeCompare(b.startTime || "")
-          )
-        );
-      } catch (err) {
-        console.error("Failed to create slot:", err);
-        alert(err.message || "Failed to create slot.");
-      }
-    },
-    [selectedLab, date, setSlots]
-  );
-
-  const handleSubmitReservation = async () => {
-    if (!pendingStudent || pendingSeats.length === 0 || !selectedSlot || !user) return;
-
-    const targetSeat = pendingSeats[0];
-
-    setIsStudentSelectorOpen(false);
-    setPendingStudent(null);
-    setPendingSeats([]);
-
-    try {
-      await createReservation({
-        reservedFor: pendingStudent._id,
-        reservedBy: user._id,
-        slots: [{ slot: selectedSlot.slot._id, seat: targetSeat }],
-        status: "active",
-        isAnonymous: false,
-      });
-
-      await handleSlotClick(selectedSlot.slot);
-    } catch (err) {
-      console.error("Error saving student to slot:", err);
-      alert(err.message || "Failed to add student.");
-    }
-  };
-
-  const handleRemoveStudent = async (studentId, reservationId) => {
-    if (!selectedSlot) return;
-
-    const previousStudents = [...(selectedSlot.slot.students || [])];
-
-    setSelectedSlot((prev) => ({
-      ...prev,
-      slot: {
-        ...prev.slot,
-        students: prev.slot.students.filter(
-          (student) =>
-            student.studentId !== studentId || student.reservationId !== reservationId
-        ),
-      },
-    }));
-
-    try {
-      await cancelNoShowReservation(reservationId);
-    } catch (err) {
-      console.error("Failed to remove student:", err);
-      alert(err.message || "Failed to remove student. Reverting changes.");
-
-      setSelectedSlot((prev) => ({
-        ...prev,
-        slot: {
-          ...prev.slot,
-          students: previousStudents,
-        },
-      }));
-    }
-  };
-
-  const handleBackToSlots = () => {
-    setSelectedSlot(null);
-  };
-
-  const renderRightPanel = () => {
-    if (selectedSlot) {
-      return (
-        <Panel
-          selectedSlot={selectedSlot}
-          onOpenStudentSelector={() => setIsStudentSelectorOpen(true)}
-          removeStudent={handleRemoveStudent}
-          onBack={handleBackToSlots}
-        />
-      );
-    }
-
-    if (selectedLab) {
-      return (
-        <RoomSlotsPanel
-          lab={selectedLab}
-          slots={slotsForSelectedLab}
-          selectedSlot={selectedSlot}
-          date={date}
-          onSlotClick={handleSlotClick}
-          onAddSlot={handleAddSlot}
-        />
-      );
-    }
-
-    if (slotsLoading) {
-      return <div className={styles.panelPlaceholder}>Loading slots...</div>;
-    }
-
-    return <div className={styles.panelPlaceholder}>Select a room</div>;
-  };
-
-  if (userLoading || labsLoading) {
+  if (!user || user.role !== "student") {
     return null;
   }
 
   return (
-    <div style={{ backgroundColor: "#242738", position: "relative", minHeight: "100vh" }}>
-      <HomeNavbar
-        style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10 }}
-      />
+    <div className={styles.pageWrapper}>
+      <HomeNavbar />
 
-      <img
-        src="../../laboratoryPhoto.png"
-        style={{ height: "100vh", width: "100%", objectFit: "cover" }}
-        alt="Laboratory"
-      />
+      <div className={styles.pageTitle}>My Reservations</div>
 
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          flexDirection: "column",
-          marginTop: "100px",
-        }}
-      >
-        <TopBar
-          date={date}
-          setDate={setDate}
-          search={search}
-          setSearch={(value) => {
-            setHasTouchedSearch(true);
-            setSearchInput(value);
-          }}
-        />
+      <div className={styles.content}>
+        {isAutoSelect && displayReservations.length > 0 && (
+          <h2 className={styles.manageLatestTitle}>Managing Latest Reservation</h2>
+        )}
 
-        <div className={styles.container}>
-          <div className={styles.schedule}>
-            {filteredLabs.map((lab) => (
-              <LabCard
-                key={lab._id}
-                lab={lab}
-                isSelected={selectedLab?._id === lab._id}
-                onClick={() => handleLabClick(lab)}
-              />
-            ))}
-          </div>
-
-          {renderRightPanel()}
+        <div className={styles.reservationList}>
+          {displayReservations.length > 0 ? (
+            displayReservations.map((reservation, index) => (
+              <div
+                key={reservation.id || reservation._id || index}
+                className={isAutoSelect && index === 0 ? styles.highlightedCard : ""}
+              >
+                <ReservationCard
+                  reservation={reservation}
+                  onEdit={() => editReservation(reservation.id || reservation._id)}
+                />
+              </div>
+            ))
+          ) : (
+            <p style={{ color: "#1F2234" }}>You have no upcoming reservations.</p>
+          )}
         </div>
       </div>
-
-      {isStudentSelectorOpen && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.6)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 9999,
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "#242738",
-              padding: "20px",
-              borderRadius: "12px",
-              position: "relative",
-              maxWidth: "90vw",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              minWidth: "500px",
-            }}
-          >
-            <button
-              onClick={() => {
-                setIsStudentSelectorOpen(false);
-                setPendingStudent(null);
-                setPendingSeats([]);
-              }}
-              style={{
-                position: "absolute",
-                top: "15px",
-                right: "15px",
-                background: "transparent",
-                border: "none",
-                color: "white",
-                fontSize: "20px",
-                cursor: "pointer",
-                zIndex: 10,
-              }}
-            >
-              X
-            </button>
-
-            {!pendingStudent ? (
-              <SelectStudent
-                currentUserId={user?._id}
-                onSelectStudent={(student) => setPendingStudent(student)}
-              />
-            ) : (
-              <div style={{ color: "white", textAlign: "center", padding: "20px" }}>
-                <h3 style={{ marginBottom: "20px" }}>
-                  Select Seat for {pendingStudent.firstName} {pendingStudent.lastName}
-                </h3>
-
-                <SeatSelector
-                  key={selectedSlot?.slot?.students?.length || 0}
-                  selectedSlotId={selectedSlot?.slot?._id}
-                  labData={selectedLab}
-                  onSelect={(seats) => setPendingSeats(seats)}
-                />
-
-                <button
-                  onClick={handleSubmitReservation}
-                  disabled={pendingSeats.length === 0}
-                  style={{
-                    marginTop: "20px",
-                    padding: "12px 24px",
-                    backgroundColor: pendingSeats.length === 0 ? "#555" : "#4CAF50",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: pendingSeats.length === 0 ? "not-allowed" : "pointer",
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                    width: "100%",
-                  }}
-                >
-                  Confirm Reservation
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
