@@ -8,13 +8,12 @@ const {
     getSlotEndDateTime,
 } = require("../utils/slotRules");
 
-
 exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
     const query = { date: requestedDate };
     if (!includeBlocked) {
         query.isAvailable = true;
     }
-    return await Slot.find(query).populate('lab');
+    return await Slot.find(query).populate("lab");
 };
 
 exports.createSlot = async (slotData) => {
@@ -40,21 +39,20 @@ exports.createSlot = async (slotData) => {
 
 exports.getWeeklyCount = async (startDate, daysCount = 7) => {
     const results = [];
-    
+
     for (let i = 0; i < daysCount; i++) {
         const date = new Date(startDate);
         date.setDate(date.getDate() + i);
-        const isoDate = date.toISOString().split('T')[0];
+        const isoDate = date.toISOString().split("T")[0];
 
-        // count items in db with specific date
-        const count = await Slot.countDocuments({ 
-            date: isoDate, 
-            isAvailable: true 
+        const count = await Slot.countDocuments({
+            date: isoDate,
+            isAvailable: true,
         });
 
         results.push({
             date: isoDate,
-            count: count
+            count,
         });
     }
     return results;
@@ -66,13 +64,11 @@ exports.getReservedSeatsForSlot = async (slotId) => {
         status: "active",
     });
 
-    const reservedSeats = reservations.flatMap((res) =>
+    return reservations.flatMap((res) =>
         res.slots
-            .filter((s) => s.slot.toString() === slotId.toString())
-            .map((s) => s.seat)
+            .filter((slotEntry) => slotEntry.slot.toString() === slotId.toString())
+            .map((slotEntry) => slotEntry.seat)
     );
-
-    return reservedSeats;
 };
 
 exports.getSlotReservationDetails = async (slotId) => {
@@ -89,27 +85,26 @@ exports.getSlotReservationDetails = async (slotId) => {
         .populate("reservedBy", "firstName lastName");
 
     const occupiedSeats = [];
-    const reservationDetails = [];
+    const reservationDetails = reservations.map((reservation) => {
+        const seats = reservation.slots
+            .filter((slotEntry) => slotEntry.slot.toString() === slotId.toString())
+            .map((slotEntry) => slotEntry.seat);
 
-    reservations.forEach((res) => {
-        res.slots
-            .filter((s) => s.slot.toString() === slotId.toString())
-            .forEach((s) => {
-                occupiedSeats.push(s.seat);
-                const userName = res.reservedFor
-                    ? res.isAnonymous
-                        ? "Anonymous"
-                        : `${res.reservedFor.firstName || ""} ${res.reservedFor.lastName || ""}`.trim()
-                    : "Unknown";
+        occupiedSeats.push(...seats);
 
-                // ✅ Now includes IDs
-                reservationDetails.push({ 
-                    reservationId: res._id,
-                    studentId: res.reservedFor?._id,
-                    name: userName, 
-                    seat: s.seat 
-                });
-            });
+        const userName = reservation.reservedFor
+            ? reservation.isAnonymous
+                ? "Anonymous"
+                : `${reservation.reservedFor.firstName || ""} ${reservation.reservedFor.lastName || ""}`.trim()
+            : "Unknown";
+
+        return {
+            reservationId: reservation._id.toString(),
+            studentId: reservation.reservedFor?._id?.toString() || null,
+            name: userName,
+            seats,
+            seatNumber: seats.join(", "),
+        };
     });
 
     return {
@@ -126,6 +121,6 @@ exports.updateSlotAvailability = async (slotId, isAvailable) => {
         slotId,
         { isAvailable },
         { new: true }
-    ).populate('lab');
+    ).populate("lab");
     return slot;
 };

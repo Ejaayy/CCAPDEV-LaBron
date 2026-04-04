@@ -1,6 +1,12 @@
 import styles from "./Panel.module.css";
 
-export default function Panel({ selectedSlot, onOpenStudentSelector, removeStudent, onBack }) {
+export default function Panel({
+  selectedSlot,
+  onOpenStudentSelector,
+  onEditReservation,
+  removeStudent,
+  onBack,
+}) {
   const { room, slot } = selectedSlot;
 
   const noShowEligibleLabel = slot.noShowEligibleAt
@@ -41,12 +47,24 @@ export default function Panel({ selectedSlot, onOpenStudentSelector, removeStude
 
       <div className={styles.studentList}>
         {slot.students && slot.students.map((student) => (
-          <div key={student.seat} className={styles.studentRow}>
-            <span>{student.name} - Seat: {student.seat}</span>
-            
+          <div key={student.reservationId} className={styles.studentRow}>
+            <div className={styles.studentInfo}>
+              <span className={styles.studentNameText}>{student.name}</span>
+              <span className={styles.studentSeatText}>
+                Seat{student.seats?.length > 1 ? "s" : ""}: {student.seatNumber}
+              </span>
+            </div>
+
+            <div className={styles.studentActions}>
+              <button
+                className={styles.editStudentBtn}
+                onClick={() => onEditReservation(student)}
+              >
+                Edit
+              </button>
               <button
                 className={styles.removeBtn}
-                onClick={() => removeStudent(student.studentId, student.reservationId)}
+                onClick={() => removeStudent(student.reservationId)}
                 disabled={!slot.canCancelNoShow}
                 title={
                   slot.canCancelNoShow
@@ -56,7 +74,7 @@ export default function Panel({ selectedSlot, onOpenStudentSelector, removeStude
               >
                 Mark No-Show
               </button>
-            
+            </div>
           </div>
         ))}
       </div>

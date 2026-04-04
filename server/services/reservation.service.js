@@ -286,6 +286,10 @@ exports.addSeats = async (reservationId, newSeatArray) => {
         throw new Error("Reservation not found");
     }
 
+    if (!Array.isArray(newSeatArray) || newSeatArray.length === 0) {
+        throw new Error("Reservations must keep at least one seat.");
+    }
+
     // Grab the Slot ID from the existing reservation
     const existingSlotId = reservation.slots[0].slot;
 

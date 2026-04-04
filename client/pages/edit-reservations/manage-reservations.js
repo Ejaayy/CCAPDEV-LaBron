@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
 import HomeNavbar from "@/components/layout/HomeNavbar/HomeNavbar";
+import EditReservationModal from "@/components/reservations-management/EditReservationModal/EditReservationModal";
 import TopBar from "@/components/reservations-management/TopBar/TopBar";
 import LabCard from "@/components/reservations-management/LabCard/LabCard";
 import RoomSlotsPanel from "@/components/reservations-management/RoomSlotsPanel/RoomSlotsPanel";
@@ -14,7 +15,11 @@ import styles from "./ManageReservations.module.css";
 import useAuth from "@/hooks/useAuth";
 import useLabs from "@/hooks/useLabs";
 import { useSlotsByDate } from "@/hooks/useSlots";
-import { cancelNoShowReservation, createReservation } from "@/lib/reservations";
+import {
+  cancelNoShowReservation,
+  createReservation,
+  updateReservationSeats,
+} from "@/lib/reservations";
 import { createSlot, getSlotOccupancy } from "@/lib/slots";
 import { createLab } from "@/lib/labs";
 
@@ -33,6 +38,7 @@ export default function ManageReservations() {
   const [hasTouchedSearch, setHasTouchedSearch] = useState(false);
   const [selectedLab, setSelectedLab] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [editingReservation, setEditingReservation] = useState(null);
   const [isStudentSelectorOpen, setIsStudentSelectorOpen] = useState(false);
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
 
@@ -173,7 +179,33 @@ export default function ManageReservations() {
     }
   };
 
-  const handleRemoveStudent = async (studentId, reservationId) => {
+  const handleEditReservation = (reservation) => {
+    if (!selectedSlot) return;
+
+    setEditingReservation({
+      ...reservation,
+      slotId: selectedSlot.slot._id,
+      laboratory: selectedSlot.room?.name || "Unknown Lab",
+      reservationTime: selectedSlot.slot?.time || "N/A",
+      rawDate: selectedSlot.slot?.date || null,
+      availableSeats: selectedSlot.room?.seats || [],
+    });
+  };
+
+  const handleEditReservationConfirm = async (newSeats) => {
+    if (!editingReservation || !selectedSlot) return;
+
+    try {
+      await updateReservationSeats(editingReservation.reservationId, newSeats);
+      setEditingReservation(null);
+      await handleSlotClick(selectedSlot.slot);
+    } catch (err) {
+      console.error("Failed to update reservation:", err);
+      alert(err.message || "Failed to update reservation.");
+    }
+  };
+
+  const handleRemoveStudent = async (reservationId) => {
     if (!selectedSlot) return;
 
     const previousStudents = [...(selectedSlot.slot.students || [])];
@@ -182,10 +214,7 @@ export default function ManageReservations() {
       ...prev,
       slot: {
         ...prev.slot,
-        students: prev.slot.students.filter(
-          (student) =>
-            student.studentId !== studentId || student.reservationId !== reservationId
-        ),
+        students: prev.slot.students.filter((student) => student.reservationId !== reservationId),
       },
     }));
 
@@ -215,6 +244,7 @@ export default function ManageReservations() {
         <Panel
           selectedSlot={selectedSlot}
           onOpenStudentSelector={() => setIsStudentSelectorOpen(true)}
+          onEditReservation={handleEditReservation}
           removeStudent={handleRemoveStudent}
           onBack={handleBackToSlots}
           user={user}
@@ -403,6 +433,14 @@ export default function ManageReservations() {
             )}
           </div>
         </div>
+      )}
+
+      {editingReservation && (
+        <EditReservationModal
+          reservation={editingReservation}
+          onClose={() => setEditingReservation(null)}
+          onConfirm={handleEditReservationConfirm}
+        />
       )}
     </div>
   );

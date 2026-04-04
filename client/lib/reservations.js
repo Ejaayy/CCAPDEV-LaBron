@@ -34,3 +34,10 @@ export function cancelNoShowReservation(reservationId) {
     method: "DELETE",
   });
 }
+
+export function updateReservationSeats(reservationId, seats) {
+  return apiJson(`/reservations/${reservationId}/seats`, {
+    method: "PATCH",
+    body: JSON.stringify({ seats }),
+  });
+}

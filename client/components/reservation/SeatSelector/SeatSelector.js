@@ -1,52 +1,54 @@
-import { useState, useEffect } from 'react';
-import styles from './SeatSelector.module.css';
+import { useEffect, useState } from "react";
+import styles from "./SeatSelector.module.css";
 
 /**
- Prop explanation:
-
- lockedSeats {string[]}  Seats the current user already owns.
- *                       Pre-loaded into selection; cannot be deselected.
- *                       Rendered with purple styling.
- *                       Defaults to [] so existing usages in reserve.js are unaffected.
+ * lockedSeats: seats already owned by the reservation being edited.
+ * initialSelectedSeats: starting selection for edit mode.
+ * allowLockedSeatRemoval: whether those owned seats can be deselected.
  */
-export default function SeatSelector({ onSelect, selectedSlotId, labData, lockedSeats = [] }) {
-
+export default function SeatSelector({
+  onSelect,
+  selectedSlotId,
+  labData,
+  lockedSeats = [],
+  initialSelectedSeats = lockedSeats,
+  allowLockedSeatRemoval = false,
+}) {
   const currentSeats = labData?.seats || [];
 
   const [occupiedSeats, setOccupiedSeats] = useState([]);
-  const [selectedSeats, setSelectedSeats] = useState(() => [...lockedSeats]);
+  const [selectedSeats, setSelectedSeats] = useState(() => [...initialSelectedSeats]);
 
-  // refresh when seats changes
   useEffect(() => {
-    setSelectedSeats([...lockedSeats]);
-  }, [lockedSeats.join(',')]);
+    setSelectedSeats([...initialSelectedSeats]);
+  }, [initialSelectedSeats.join(",")]);
 
   useEffect(() => {
     const fetchOccupancy = async () => {
       if (!selectedSlotId) return;
+
       try {
         const response = await fetch(`http://localhost:3001/api/slots/${selectedSlotId}/occupancy`);
         const data = await response.json();
-        setOccupiedSeats(data); // ["A1", "B3", ...]
+        setOccupiedSeats(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch seat occupancy:", error);
       }
     };
+
     fetchOccupancy();
   }, [selectedSlotId]);
 
   const handleSeatClick = (seatId) => {
-    // Must be a valid seat in this lab
     if (!currentSeats.includes(seatId)) return;
 
-    // Cannot remove already-reserved (locked) seats
-    if (lockedSeats.includes(seatId)) return;
+    const isOwnedSeat = lockedSeats.includes(seatId);
 
-    // Cannot take a seat occupied by someone else
-    if (occupiedSeats.includes(seatId) && !lockedSeats.includes(seatId)) return;
+    if (isOwnedSeat && !allowLockedSeatRemoval) return;
+    if (occupiedSeats.includes(seatId) && !isOwnedSeat) return;
 
     const nextSeats = selectedSeats.includes(seatId)
-      ? selectedSeats.filter(id => id !== seatId)
+      ? selectedSeats.filter((id) => id !== seatId)
       : [...selectedSeats, seatId];
 
     setSelectedSeats(nextSeats);
@@ -67,19 +69,20 @@ export default function SeatSelector({ onSelect, selectedSlotId, labData, locked
     return tableGroups;
   };
 
-  const newlySelected = selectedSeats.filter(id => !lockedSeats.includes(id));
+  const isEditMode = lockedSeats.length > 0;
+  const addedSeats = selectedSeats.filter((id) => !lockedSeats.includes(id));
+  const removedSeats = lockedSeats.filter((id) => !selectedSeats.includes(id));
+  const hasEditChanges = addedSeats.length > 0 || removedSeats.length > 0;
 
   return (
     <div className={styles.seatSelectionContainer}>
       <div className={styles.mapSection}>
-
         <div className={styles.legend}>
           <div className={styles.legendItem}><span className={styles.boxGray}></span> Available</div>
           <div className={styles.legendItem}><span className={styles.boxDarkBlue}></span> Reserved</div>
           <div className={styles.legendItem}><span className={styles.boxLightBlue}></span> Selecting</div>
-          {/* "Already selected" indicator only shows up on edit*/}
-          {lockedSeats.length > 0 && (
-            <div className={styles.legendItem}><span className={styles.boxYours}></span> Already selected </div>
+          {isEditMode && (
+            <div className={styles.legendItem}><span className={styles.boxYours}></span> Current reservation</div>
           )}
         </div>
 
@@ -94,21 +97,30 @@ export default function SeatSelector({ onSelect, selectedSlotId, labData, locked
 
               <div className={styles.seatsRow}>
                 {table.seats.map((seatId) => {
-                  const isLocked   = lockedSeats.includes(seatId);
-                  const isReserved = !isLocked && occupiedSeats.includes(seatId);
-                  const isSelected = !isLocked && selectedSeats.includes(seatId);
+                  const isOwnedSeat = lockedSeats.includes(seatId);
+                  const isReserved = occupiedSeats.includes(seatId) && !isOwnedSeat;
+                  const isSelected = selectedSeats.includes(seatId);
 
                   return (
                     <div
                       key={seatId}
                       className={`${styles.seatBox} ${
-                        isLocked   ? styles.seatYours     :
-                        isReserved ? styles.seatReserved  :
-                        isSelected ? styles.seatSelecting :
-                                     styles.seatAvailable
+                        isOwnedSeat && isSelected
+                          ? styles.seatYours
+                          : isReserved
+                            ? styles.seatReserved
+                            : isSelected
+                              ? styles.seatSelecting
+                              : styles.seatAvailable
                       }`}
                       onClick={() => handleSeatClick(seatId)}
-                      title={isLocked ? 'Already reserved by you — cannot remove' : undefined}
+                      title={
+                        isOwnedSeat
+                          ? allowLockedSeatRemoval
+                            ? "Currently part of this reservation. Click to keep or remove it."
+                            : "Already reserved by you and cannot be removed here."
+                          : undefined
+                      }
                     >
                       {seatId}
                     </div>
@@ -128,22 +140,40 @@ export default function SeatSelector({ onSelect, selectedSlotId, labData, locked
             <span>{labData?.name}</span>
           </div>
 
-          {lockedSeats.length > 0 && (
+          {isEditMode && (
             <div className={styles.summaryRow}>
               <span>Current seats:</span>
-              <span className={styles.lockedText}>{lockedSeats.join(', ')}</span>
+              <span className={styles.lockedText}>{lockedSeats.join(", ")}</span>
             </div>
           )}
 
           <div className={styles.summaryRow}>
-            <span>{lockedSeats.length > 0 ? 'Adding:' : 'Seats:'}</span>
+            <span>{isEditMode ? "Selected now:" : "Seats:"}</span>
             <span className={styles.highlightText}>
-              {newlySelected.length > 0 ? newlySelected.join(', ') : 'None'}
+              {selectedSeats.length > 0 ? selectedSeats.join(", ") : "None"}
             </span>
           </div>
 
+          {isEditMode && (
+            <>
+              <div className={styles.summaryRow}>
+                <span>Adding:</span>
+                <span className={styles.highlightText}>
+                  {addedSeats.length > 0 ? addedSeats.join(", ") : "None"}
+                </span>
+              </div>
+
+              <div className={styles.summaryRow}>
+                <span>Removing:</span>
+                <span className={styles.highlightText}>
+                  {removedSeats.length > 0 ? removedSeats.join(", ") : "None"}
+                </span>
+              </div>
+            </>
+          )}
+
           <div className={styles.summaryRow}>
-            <span>{lockedSeats.length > 0 ? 'Total after update:' : 'Total:'}</span>
+            <span>{isEditMode ? "Total after update:" : "Total:"}</span>
             <span>{selectedSeats.length}</span>
           </div>
 
@@ -152,12 +182,13 @@ export default function SeatSelector({ onSelect, selectedSlotId, labData, locked
           <button
             className={styles.clearButton}
             onClick={() => {
-              setSelectedSeats([...lockedSeats]);
-              onSelect([...lockedSeats]);
+              const resetSeats = isEditMode ? [...lockedSeats] : [];
+              setSelectedSeats(resetSeats);
+              onSelect(resetSeats);
             }}
-            disabled={newlySelected.length === 0}
+            disabled={isEditMode ? !hasEditChanges : selectedSeats.length === 0}
           >
-            {lockedSeats.length > 0 ? 'Clear New Selection' : 'Clear Selection'}
+            {isEditMode ? "Reset to Current Seats" : "Clear Selection"}
           </button>
         </div>
       </div>
