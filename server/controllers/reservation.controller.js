@@ -1,12 +1,52 @@
 const reservationService = require('../services/reservation.service');
+const emailService = require('../services/email.service'); 
+const User = require('../model/User');
 const Reservation = require('../model/reservation.model');
 
 exports.createReservation = async (req, res) => {
     try {
+        
         const reservation = await reservationService.createReservation(req.body);
         res.status(201).json(reservation);
+
+        // EMAIL PROCESSING 
+        // Fetch the user's email address
+        const user = await User.findById(req.body.reservedFor);
+
+        const populatedReservation = await Reservation.findById(reservation._id).populate({
+            path: 'slots.slot',
+            populate: { path: 'lab' }
+        });
+
+        if (user && user.email && populatedReservation && populatedReservation.slots.length > 0) {
+            const firstSlot = populatedReservation.slots[0].slot;
+            
+            // Format the time 
+            const formatTime12h = (time24) => {
+                if (!time24) return "N/A";
+                const [hour, minute] = time24.split(':');
+                const h = parseInt(hour, 10);
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                const h12 = h % 12 || 12;
+                return `${h12.toString().padStart(2, '0')}:${minute} ${ampm}`;
+            };
+
+            const timeString = `${formatTime12h(firstSlot.startTime)} - ${formatTime12h(firstSlot.endTime)}`;
+            const seatString = populatedReservation.slots.map(s => s.seat).join(", ");
+
+            // Fire email
+            emailService.sendConfirmationEmail(user.email, {
+                laboratory: firstSlot.lab ? firstSlot.lab.name : "Unknown Lab",
+                rawDate: firstSlot.date,
+                reservationTime: timeString,
+                seats: seatString
+            });
+        }
+        
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        if (!res.headersSent) {
+            res.status(400).json({ message: error.message });
+        }
     }
 };
 
