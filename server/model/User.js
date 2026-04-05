@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema(
         resetPasswordExpires: {
             type: Date,
             default: undefined
+        },
+        description: {
+            type: String,
+            default: "Student at DLSU."
         }
     },
     {timestamps: true }

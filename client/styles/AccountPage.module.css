@@ -112,7 +112,7 @@
 
 .field-group label {
     display: inline-block;
-    width: 60px;
+    width: 90px;
     font-weight: 500;
 }
 
@@ -120,7 +120,7 @@
     border: 1px solid #000;
     border-radius: 20px;
     padding: 5px 15px;
-    width: calc(100% - 70px);
+    width: calc(100% - 100px);
 }
 
 .action-buttons {
@@ -238,7 +238,7 @@
 .profile-desc {
     font-size: 0.85rem;
     color: #888;
-    margin-top: 5px;
+    margin-top: 25px;
     font-style: italic;
     text-align: center;
 }

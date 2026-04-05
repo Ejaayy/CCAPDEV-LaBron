@@ -7,6 +7,10 @@ import { API_BASE_URL } from "@/constants/api";
 import useAuth from "@/hooks/useAuth";
 import { useMyReservations } from "@/hooks/useReservations";
 
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { updateProfile, deleteAccount } from "@/lib/users";
+
 function getDynamicStatus(reservation) {
   if (reservation.status !== "active") return reservation.status;
 
@@ -26,6 +30,14 @@ export default function Account() {
   const { user, loading: userLoading } = useAuth();
   const { reservations, loading: reservationsLoading } = useMyReservations();
   const scrollRef = useRef(null);
+
+  const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    description: user?.description || ""
+  });
 
   const fullImageUrl = user?.profilePicturePath
     ? `${API_BASE_URL.replace("/api", "")}${user.profilePicturePath}`
@@ -94,12 +106,24 @@ export default function Account() {
 
               <div className={AccountStyles["info-fields"]}>
                 <div className={AccountStyles["field-group"]}>
-                  <label>Name</label>
+                  <label>First Name</label>
                   <input
-                    type="text"
-                    className={AccountStyles["custom-input"]}
-                    value={`${user.firstName} ${user.lastName}`}
-                    readOnly
+                      type="text"
+                      className={AccountStyles["custom-input"]}
+                      value={isEditing ? editData.firstName : user.firstName}
+                      onChange={(e) => setEditData({...editData, firstName: e.target.value})}
+                      readOnly={!isEditing}
+                  />
+                </div>
+
+                <div className={AccountStyles["field-group"]}>
+                  <label>Last Name</label>
+                  <input
+                      type="text"
+                      className={AccountStyles["custom-input"]}
+                      value={isEditing ? editData.lastName : user.lastName}
+                      onChange={(e) => setEditData({...editData, lastName: e.target.value})}
+                      readOnly={!isEditing}
                   />
                 </div>
 
@@ -127,14 +151,63 @@ export default function Account() {
 
             <div className={AccountStyles["profile-lower"]}>
               <div className={AccountStyles["bio-section"]}>
-                <p className={AccountStyles["profile-desc"]}>
-                  This section can later be connected to editable profile data.
-                </p>
+                {isEditing ? (
+                    <textarea
+                        className={AccountStyles["custom-input"]}
+                        value={editData.description}
+                        onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                        style={{ width: "100%", height: "80px", resize: "none", marginTop: "10px" }}
+                        placeholder="Write a short bio about yourself..."
+                    />
+                ) : (
+                    <p className={AccountStyles["profile-desc"]}>
+                      {user.description || "No bio yet."}
+                    </p>
+                )}
               </div>
 
               <div className={AccountStyles["action-buttons-row"]}>
-                <button className={AccountStyles["edit-btn"]}>Edit profile</button>
-                <button className={AccountStyles["delete-btn"]}>Delete account</button>
+                {isEditing ? (
+                    <>
+                      <button
+                          className={AccountStyles["edit-btn"]}
+                          style={{ backgroundColor: "#4CAF50" }} // Make it green for saving
+                          onClick={async () => {
+                            await updateProfile(editData);
+                            setIsEditing(false);
+                            window.location.reload(); // Quick way to refresh data
+                          }}>
+                        Save Changes
+                      </button>
+                      <button className={AccountStyles["delete-btn"]} onClick={() => setIsEditing(false)}>Cancel</button>
+                    </>
+                ) : (
+                    <>
+                      <button
+                          className={AccountStyles["edit-btn"]}
+                          onClick={() => {
+                            setEditData({
+                              firstName: user.firstName || "",
+                              lastName: user.lastName || "",
+                              description: user.description || ""
+                            });
+                            setIsEditing(true);
+                          }}
+                      >
+                        Edit profile
+                      </button>
+                      <button
+                          className={AccountStyles["delete-btn"]}
+                          onClick={async () => {
+                            if (confirm("Are you sure? This will delete your account and cancel all your reservations forever.")) {
+                              await deleteAccount();
+                              router.push("/auth/login"); // Send back to login
+                            }
+                          }}>
+                        Delete account
+                      </button>
+                    </>
+                )}
               </div>
             </div>
           </div>
