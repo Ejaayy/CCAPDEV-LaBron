@@ -5,6 +5,22 @@ exports.register = async (req, res) => {
     try {
         const { email, password, firstName, lastName, role, idNumber } = req.body;
 
+        //backend validation
+        if (!email || !password || !firstName || !lastName || !idNumber) {
+            return res.status(400).json({ message: "All fields are required. Please fill out the entire form." });
+        }
+        const emailRegex = /^[a-zA-Z0-9._-]+@dlsu\.edu\.ph$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: "You must use a valid @dlsu.edu.ph email address." });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters long." });
+        }
+        const idRegex = /^\d{8}$/;
+        if (!idRegex.test(idNumber)) {
+            return res.status(400).json({ message: "ID Number must be exactly 8 digits." });
+        }
+
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: "User already exists" });
 
