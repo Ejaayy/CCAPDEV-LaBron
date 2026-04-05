@@ -4,6 +4,45 @@ const Slot = require('../model/slot.model');
 const { canCancelNoShow, getNoShowDeadline, getSlotEndDateTime } = require("../utils/slotRules");
 
 exports.createReservation = async (reservationData) => {
+    // backend validation
+    if (!reservationData.slots || reservationData.slots.length === 0) {
+        throw new Error("You must select at least one seat to reserve.");
+    }
+
+    const requestedSlotId = reservationData.slots[0].slot;
+    const requestedSeats = reservationData.slots.map(s => s.seat);
+
+    // double booking prevention
+    const seatCollision = await Reservation.findOne({
+        status: "active",
+        slots: {
+            $elemMatch: {
+                slot: requestedSlotId,
+                seat: { $in: requestedSeats }
+            }
+        }
+    });
+
+    if (seatCollision) {
+        // check which seat is taken
+        const takenSeats = seatCollision.slots
+            .filter(s => s.slot.toString() === requestedSlotId.toString() && requestedSeats.includes(s.seat))
+            .map(s => s.seat);
+
+        throw new Error(`Reservation failed. Seat(s) ${takenSeats.join(", ")} were just taken by someone else!`);
+    }
+
+    // prevents user from booking the same timeslot twice
+    const userCollision = await Reservation.findOne({
+        status: "active",
+        reservedFor: reservationData.reservedFor,
+        "slots.slot": requestedSlotId
+    });
+
+    if (userCollision) {
+        throw new Error("You already have an active reservation during this time slot.");
+    }
+
     const reservation = new Reservation(reservationData);
     return await reservation.save();
 };
