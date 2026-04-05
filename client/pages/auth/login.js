@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import loginStyles from "./login.module.css";
-import { login, register } from "@/lib/auth";
+import { login, register, forgotPassword } from "@/lib/auth";
 
 export default function Login() {
 
@@ -19,6 +19,16 @@ export default function Login() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotMessage, setForgotMessage] = useState("");
+  const [forgotStatus, setForgotStatus] = useState("");
+
+  const toggleForgotModal = () => {
+    setIsForgotModalOpen((prev) => !prev);
+    setForgotMessage("");
+    setForgotStatus("");
+  };
 
   // stores ALL registration form data in one object
   // easier than making separate states for each input
@@ -31,6 +41,8 @@ export default function Login() {
     pass2: "",
     role: "student", // default role
   });
+
+  const [rememberMe, setRememberMe] = useState(false);
 
 
   // toggles the register modal open/close
@@ -104,6 +116,7 @@ export default function Login() {
       const data = await login({
         email: loginEmail,
         password: loginPassword,
+        rememberMe: rememberMe
       });
 
       // redirect depending on user role
@@ -121,6 +134,21 @@ export default function Login() {
         console.error("Login error:", error);
       }
       setLoginError(error.message || "Invalid credentials.");
+    }
+  }
+
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    setForgotMessage("Sending...");
+    setForgotStatus("loading");
+
+    try {
+      const response = await forgotPassword(forgotEmail);
+      setForgotMessage(response.message || "Reset link sent!");
+      setForgotStatus("success");
+    } catch (error) {
+      setForgotMessage(error.message || "Failed to send reset link.");
+      setForgotStatus("error");
     }
   }
 
@@ -250,6 +278,57 @@ export default function Login() {
           </form>
         </div>
       )}
+      {isForgotModalOpen && (
+          <div className={loginStyles.signUpModal} style={{ height: "auto", paddingBottom: "40px" }}>
+            <div className={loginStyles.backButtonContainer}>
+            <span onClick={toggleForgotModal} className={loginStyles.backButton}>
+              &lt;
+            </span>
+            </div>
+
+            <h1>Reset Password</h1>
+            <h6>Enter your DLSU email to receive a reset link.</h6>
+
+            <form onSubmit={handleForgotPassword}>
+              <div className={loginStyles.formLayout}>
+                <div className={loginStyles.inputLayout}>
+                  <div className={loginStyles.formBreak}>
+                    <label className={loginStyles.formLabels}>DLSU Email Address</label>
+                    <br />
+                    <input
+                        className={loginStyles.inputboxes}
+                        style={{ width: "100%" }}
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        required
+                    />
+                  </div>
+                </div>
+
+                {forgotMessage && (
+                    <p
+                        style={{
+                          color: forgotStatus === "loading" ? "black" :
+                              forgotStatus === "success" ? "#4CAF50" :
+                                  "red",
+                          marginTop: "10px",
+                          fontWeight: "bold"
+                        }}
+                    >
+                      {forgotMessage}
+                    </p>
+                )}
+
+                <div style={{ marginTop: "20px" }}>
+                  <button type="submit" className={loginStyles.confirmButton}>
+                    Send Link
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+      )}
 
       <div style={{ position: "relative" }}>
         <img src="../../../curves.png" style={{ height: "100vh", width: "100vh" }} alt="curves" />
@@ -303,10 +382,21 @@ export default function Login() {
 
             <div className={loginStyles.rememberMeRow}>
               <label className={loginStyles.rememberMeLabel}>
-                <input type="checkbox" className={loginStyles.rememberMeCheckbox} />
+                <input
+                    type="checkbox"
+                    className={loginStyles.rememberMeCheckbox}
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                />
                 Remember Me
               </label>
-              <label className={loginStyles.forgotPassword}>Forgot Password?</label>
+              <label
+                  className={loginStyles.forgotPassword}
+                  onClick={toggleForgotModal}
+                  style={{ cursor: "pointer" }}
+              >
+                Forgot Password?
+              </label>
             </div>
 
             <div className={loginStyles.subModule}>

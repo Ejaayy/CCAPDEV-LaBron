@@ -27,3 +27,17 @@ export async function logout() {
 
   return true;
 }
+
+export function forgotPassword(email) {
+  return apiJson("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetPassword(payload) {
+  return apiJson("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
