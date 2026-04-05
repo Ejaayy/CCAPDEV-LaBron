@@ -1,16 +1,20 @@
 const User = require("../model/User");
+const bcrypt = require("bcryptjs"); // password hashing
 
 exports.register = async (req, res) => {
     try {
         const { email, password, firstName, lastName, role, idNumber } = req.body;
-       
 
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: "User already exists" });
 
+        // Generate salt and hash the password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
         const newUser = new User({
             email,
-            passwordHash: password,
+            passwordHash: hashedPassword,
             firstName,
             lastName,
             role,
@@ -20,7 +24,6 @@ exports.register = async (req, res) => {
         await newUser.save();
         res.status(201).json({ message: "User registered successfully" });
     } catch (err) {
-      
         res.status(500).json({ error: err.message });
     }
 };
@@ -29,8 +32,13 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).json({ message: "Invalid email or password" });
+        }
 
-        if (user && user.passwordHash === password) {
+        const isMatch = await bcrypt.compare(password, user.passwordHash);
+
+        if (isMatch) {
             req.session.userId = user._id;
             req.session.role = user.role;
 
