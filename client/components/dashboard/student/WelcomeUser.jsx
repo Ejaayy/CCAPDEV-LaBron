@@ -1,17 +1,18 @@
 import styles from '@/styles/WelcomeUser.module.css';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from "@/constants/api";
 import AccountStyles from "@/styles/AccountPage.module.css";
 
 const WelcomeUser = ({upcomingCount = 0, availableRooms = 0, availableSlots = 0}) => {
     const [user, setUser] = useState(null);
     const imagePath = user?.profilePicturePath || '/uploads/profiles/default.png';
-    const fullImageUrl = `http://localhost:3001${imagePath}`;
+    const fullImageUrl = `${API_BASE_URL.replace("/api", "")}${imagePath}`;
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await fetch('http://localhost:3001/api/auth/me', {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include'
