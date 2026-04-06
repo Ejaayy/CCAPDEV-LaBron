@@ -9,10 +9,25 @@ const {
 } = require("../utils/slotRules");
 
 exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    
     const query = { date: requestedDate };
     if (!includeBlocked) {
         query.isAvailable = true;
     }
+
+    if (requestedDate === todayStr) {
+        // 10 minute grace period
+        const graceTime = new Date(now.getTime() - 10 * 60000);
+        const hours = String(graceTime.getHours()).padStart(2, '0');
+        const minutes = String(graceTime.getMinutes()).padStart(2, '0');
+        const currentTimeWithGrace = `${hours}:${minutes}`;
+
+        // Only find slots where startTime is greater than or equal to our grace time
+        query.startTime = { $gte: currentTimeWithGrace };
+    }
+
     return await Slot.find(query).populate("lab");
 };
 
@@ -39,16 +54,34 @@ exports.createSlot = async (slotData) => {
 
 exports.getWeeklyCount = async (startDate, daysCount = 7) => {
     const results = [];
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+
+    // Calculate grace time 
+    const graceTime = new Date(now.getTime() - 10 * 60000);
+    const currentTimeWithGrace = `${String(graceTime.getHours()).padStart(2, '0')}:${String(graceTime.getMinutes()).padStart(2, '0')}`;
 
     for (let i = 0; i < daysCount; i++) {
         const date = new Date(startDate);
         date.setDate(date.getDate() + i);
         const isoDate = date.toISOString().split("T")[0];
 
-        const count = await Slot.countDocuments({
+        const query = {
             date: isoDate,
             isAvailable: true,
-        });
+        };
+
+        // If the date is today, only count upcoming slots
+        if (isoDate === todayStr) {
+            query.startTime = { $gte: currentTimeWithGrace };
+        } 
+        // If the date is in the past, force count to 0 
+        else if (isoDate < todayStr) {
+            results.push({ date: isoDate, count: 0 });
+            continue;
+        }
+
+        const count = await Slot.countDocuments(query);
 
         results.push({
             date: isoDate,
