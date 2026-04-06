@@ -72,58 +72,77 @@ const formatTime12h = (time24) => {
     return `${h12.toString().padStart(2, '0')}:${minute} ${ampm}`;
 };
 
+const resolveReservationStatus = (currentStatus, date, startTime, endTime) => {
+    // If a technician cancelled it, status is permanent
+    if (currentStatus === "cancelled") return "cancelled";
+
+    const now = new Date();
+    const start = new Date(`${date}T${startTime}:00`);
+    const end = new Date(`${date}T${endTime}:00`);
+
+    if (now >= end) return "completed";
+    if (now >= start) return "ongoing";
+    
+    return "active";
+};
+
 exports.getUserReservations = async (userId) => {
-    const reservations = await Reservation.find({ status: "active", reservedFor: userId }).populate(
-        {path: 'slots.slot',
-        populate: {
-            path: 'lab',
-            model: 'Lab'
-        }
+    
+    const reservations = await Reservation.find({ 
+        reservedFor: userId 
+    }).populate({
+        path: 'slots.slot',
+        populate: { path: 'lab', model: 'Lab' }
     });
 
-    const formattedReservations = reservations.map(res => {
-        const firstSlotEntry = res.slots[0]; 
-        const slotInfo = firstSlotEntry ? firstSlotEntry.slot : null;
-        const labInfo = slotInfo ? slotInfo.lab : null;
+    const formattedReservations = await Promise.all(reservations.map(async (res) => {
+        const slotInfo = res.slots[0]?.slot;
+        const labInfo = slotInfo?.lab;
+
+        if (!slotInfo) return null;
+
+        const newStatus = resolveReservationStatus(
+            res.status, 
+            slotInfo.date, 
+            slotInfo.startTime, 
+            slotInfo.endTime
+        );
+
+        if (newStatus !== res.status) {
+            await Reservation.updateOne({ _id: res._id }, { status: newStatus });
+        }
 
         const combinedSeats = res.slots.map(s => s.seat).join(", ");
-
         const reqDate = new Date(res.createdAt);
         const reqDateFormatted = reqDate.toLocaleString('en-US', {
             month: 'long', day: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit', hour12: true
-        }).replace(' at ', ' '); 
+        }).replace(' at ', ' ');
 
-        let resDateFormatted = "N/A";
-
-        let sortTimeStamp = 0;
-
-        if (slotInfo && slotInfo.date) {
-            const [year, month, day] = slotInfo.date.split('-');
-            const d = new Date(year, month - 1, day);
-            resDateFormatted = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-
-            if (slotInfo.startTime) {
-                sortTimestamp = new Date(`${slotInfo.date}T${slotInfo.startTime}:00`).getTime();
-            }
-        }
+        const [year, month, day] = slotInfo.date.split('-');
+        const d = new Date(year, month - 1, day);
+        const resDateFormatted = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+        
+        const sortTimestamp = new Date(`${slotInfo.date}T${slotInfo.startTime}:00`).getTime();
 
         return {
             id: res._id.toString(), 
-            status: res.status,
+            status: newStatus,
             laboratory: labInfo ? labInfo.name : "Unknown Lab",
             seatNumber: combinedSeats || "N/A", 
-            reservationTime: slotInfo ? `${formatTime12h(slotInfo.startTime)} - ${formatTime12h(slotInfo.endTime)}` : "N/A",
+            reservationTime: `${formatTime12h(slotInfo.startTime)} - ${formatTime12h(slotInfo.endTime)}`,
             requestDateTime: reqDateFormatted,
-            rawDate: slotInfo ? slotInfo.date : null ,
-            _sortTimestamp: sortTimeStamp,
-            slotId: slotInfo ? slotInfo._id.toString() : null,
-            availableSeats: labInfo && labInfo.seats ? labInfo.seats : [],
+            rawDate: slotInfo.date,
+            resDate: resDateFormatted,
+            _sortTimestamp: sortTimestamp,
+            slotId: slotInfo._id.toString(),
+            availableSeats: labInfo?.seats || [],
         };  
-    });
-    formattedReservations.sort((a, b) => a._sortTimestamp - b._sortTimestamp);
-    formattedReservations.forEach(res => delete res._sortTimestamp);
-    return formattedReservations;
+    }));
+
+    return formattedReservations
+        .filter(res => res !== null)
+        .sort((a, b) => a._sortTimestamp - b._sortTimestamp);
 };
 
 exports.getUserStats = async (userId) => {

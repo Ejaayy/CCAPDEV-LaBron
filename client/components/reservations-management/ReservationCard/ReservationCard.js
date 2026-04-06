@@ -2,6 +2,14 @@ import styles from "./ReservationCard.module.css";
 
 export default function ReservationCard({ reservation, onEdit }) {
   
+  const statusStyles = {
+  active: styles.confirmed,
+  ongoing: styles.ongoing,
+  cancelled: styles.failed,
+  completed: styles.completed,
+  Confirmed: styles.confirmed 
+  };
+
   const { 
     laboratory, 
     status, 
@@ -15,12 +23,8 @@ export default function ReservationCard({ reservation, onEdit }) {
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.roomName}>{laboratory || "Laboratory"}</div>
-        <div
-          className={`${styles.status} ${
-            status === "active" || status === "Confirmed" ? styles.confirmed : styles.failed
-          }`}
-        >
-          {status || "Confirmed"}
+        <div className={`${styles.status} ${statusStyles[status] || styles.failed}`}>
+          {status.charAt(0).toUpperCase() + status.slice(1)}
         </div>
       </div>
 

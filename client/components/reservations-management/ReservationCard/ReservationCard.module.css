@@ -37,16 +37,20 @@
   color: #ffffff;
 }
 
-.failed {
-  background-color: #e04545;
+.ongoing {
+  background-color: #3b82f6; 
   color: #ffffff;
 }
 
-.pending {
-  background-color: #fbbf24;
-  color: #0f172a;
+.failed {
+  background-color: #e04545; 
+  color: #ffffff;
 }
 
+.completed {
+  background-color: #64748b; 
+  color: #ffffff;
+}
 /* Card Body */
 .cardBody {
   display: flex;

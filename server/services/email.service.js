@@ -53,9 +53,9 @@ exports.sendConfirmationEmail = async (userEmail, reservationDetails) => {
                     
                     <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin-top: 20px;">
                         <ul style="list-style-type: none; padding: 0; margin: 0;">
-                            <li style="margin-bottom: 12px;"><strong>🏢 Laboratory:</strong> ${reservationDetails.laboratory}</li>
-                            <li style="margin-bottom: 12px;"><strong>📅 Date:</strong> ${reservationDetails.rawDate}</li>
-                            <li style="margin-bottom: 12px;"><strong>⏰ Time:</strong> ${reservationDetails.reservationTime}</li>
+                            <li style="margin-bottom: 12px;"><strong>Laboratory:</strong> ${reservationDetails.laboratory}</li>
+                            <li style="margin-bottom: 12px;"><strong>Date:</strong> ${reservationDetails.rawDate}</li>
+                            <li style="margin-bottom: 12px;"><strong>Time:</strong> ${reservationDetails.reservationTime}</li>
                             <li><strong>🪑 Seats:</strong> ${reservationDetails.seats}</li>
                         </ul>
                     </div>
@@ -89,9 +89,9 @@ exports.sendUpdateEmail = async (userEmail, reservationDetails) => {
                     
                     <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin-top: 20px;">
                         <ul style="list-style-type: none; padding: 0; margin: 0;">
-                            <li style="margin-bottom: 12px;"><strong>🏢 Laboratory:</strong> ${reservationDetails.laboratory}</li>
-                            <li style="margin-bottom: 12px;"><strong>📅 Date:</strong> ${reservationDetails.rawDate}</li>
-                            <li style="margin-bottom: 12px;"><strong>⏰ Time:</strong> ${reservationDetails.reservationTime}</li>
+                            <li style="margin-bottom: 12px;"><strong>Laboratory:</strong> ${reservationDetails.laboratory}</li>
+                            <li style="margin-bottom: 12px;"><strong>Date:</strong> ${reservationDetails.rawDate}</li>
+                            <li style="margin-bottom: 12px;"><strong>Time:</strong> ${reservationDetails.reservationTime}</li>
                             <li><strong>🪑 New Seat List:</strong> ${reservationDetails.seats}</li>
                         </ul>
                     </div>
