@@ -12,25 +12,37 @@ exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
     
+   
     const query = { date: requestedDate };
-    if (!includeBlocked) {
-        query.isAvailable = true;
-    }
+    if (!includeBlocked) query.isAvailable = true;
 
+    // Time Filter (Today + 10 min grace)
     if (requestedDate === todayStr) {
-        // 10 minute grace period
         const graceTime = new Date(now.getTime() - 10 * 60000);
-        const hours = String(graceTime.getHours()).padStart(2, '0');
-        const minutes = String(graceTime.getMinutes()).padStart(2, '0');
-        const currentTimeWithGrace = `${hours}:${minutes}`;
-
-        // Only find slots where startTime is greater than or equal to our grace time
-        query.startTime = { $gte: currentTimeWithGrace };
+        const currentTime = `${String(graceTime.getHours()).padStart(2, '0')}:${String(graceTime.getMinutes()).padStart(2, '0')}`;
+        query.startTime = { $gte: currentTime };
     }
 
-    return await Slot.find(query).populate("lab");
-};
+    const slots = await Slot.find(query).populate("lab");
 
+    //   Get counts for all slots at once
+    return await Promise.all(slots.map(async (slot) => {
+        const activeReservations = await Reservation.find({
+            "slots.slot": slot._id,
+            status: "active"
+        });
+
+        const occupiedSeats = activeReservations.flatMap(res => res.slots.map(s => s.seat));
+        const capacity = slot.lab?.seatCount || 0;
+
+        return {
+            ...slot.toObject(),
+            occupiedCount: occupiedSeats.length,
+            capacity: capacity,
+            isFull: occupiedSeats.length >= capacity && capacity > 0
+        };
+    }));
+};
 exports.createSlot = async (slotData) => {
     const { lab, date, startTime, endTime } = slotData;
     const { startMinutes, endMinutes } = validateThirtyMinuteSlot(startTime, endTime);
