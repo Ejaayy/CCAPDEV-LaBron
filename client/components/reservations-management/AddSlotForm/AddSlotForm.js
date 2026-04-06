@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import styles from "./AddSlotForm.module.css";
 
 function getCurrentManilaDateTime() {
@@ -21,85 +21,120 @@ function getCurrentManilaDateTime() {
   };
 }
 
-function timeToMinutes(value) {
-  const [hours, minutes] = value.split(":").map(Number);
-  return hours * 60 + minutes;
+function minutesToTimeLabel(totalMinutes) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function roundUpToNextHalfHour(totalMinutes) {
+  return Math.ceil(totalMinutes / 30) * 30;
 }
 
 export default function AddSlotForm({ onAddSlot, disabled, date }) {
   const [startTime, setStartTime] = useState("");
   const [error, setError] = useState("");
 
+  const { currentDate, currentMinutes } = getCurrentManilaDateTime();
+
+  const timeOptions = useMemo(() => {
+    let earliestMinutes = 0;
+    const latestStartMinutes = 23 * 60 + 30;
+
+    if (date === currentDate) {
+      earliestMinutes = roundUpToNextHalfHour(currentMinutes);
+    }
+
+    const options = [];
+    for (let minutes = earliestMinutes; minutes <= latestStartMinutes; minutes += 30) {
+      options.push(minutesToTimeLabel(minutes));
+    }
+    return options;
+  }, [date, currentDate, currentMinutes]);
+
   const computedEndTime = startTime
-    ? (() => {
-        const [hours, minutes] = startTime.split(":").map(Number);
-        const totalMinutes = hours * 60 + minutes + 30;
-        const endHours = Math.floor(totalMinutes / 60) % 24;
-        const endMinutes = totalMinutes % 60;
-        return `${String(endHours).padStart(2, "0")}:${String(endMinutes).padStart(2, "0")}`;
-      })()
+    ? minutesToTimeLabel(
+        (Number(startTime.slice(0, 2)) * 60 + Number(startTime.slice(3, 5)) + 30) % (24 * 60)
+      )
     : "";
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!startTime || !computedEndTime) return;
-
-    const { currentDate, currentMinutes } = getCurrentManilaDateTime();
 
     if (date && date < currentDate) {
       setError("You cannot add a time slot to a past date.");
       return;
     }
 
-    if (date === currentDate && timeToMinutes(startTime) < currentMinutes) {
-      setError("You cannot add a time slot earlier than the current time for today.");
+    if (date === currentDate && !timeOptions.includes(startTime)) {
+      setError("Please select a future 30-minute start time for today.");
       return;
     }
 
-    setError("");
-
-    onAddSlot({
-      startTime: startTime.trim(),
-      endTime: computedEndTime,
-    });
-
-    setStartTime("");
+    try {
+      setError("");
+      await onAddSlot({
+        startTime,
+        endTime: computedEndTime,
+      });
+      setStartTime("");
+    } catch (err) {
+      setError(err.message || "Failed to add time slot.");
+    }
   };
+
+  const noTimeOptions = date === currentDate && timeOptions.length === 0;
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.inputGroup}>
         <label className={styles.label}>Start time</label>
-        <input
-          type="time"
+        <select
           value={startTime}
           onChange={(e) => {
             setStartTime(e.target.value);
-            if (error) {
-              setError("");
-            }
+            if (error) setError("");
           }}
           className={styles.input}
-          disabled={disabled}
-          step="1800"
-        />
+          disabled={disabled || noTimeOptions}
+        >
+          <option value="">Select a time</option>
+          {timeOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className={styles.inputGroup}>
         <label className={styles.label}>End time</label>
         <input
-          type="time"
+          type="text"
           value={computedEndTime}
           className={styles.input}
           disabled
+          placeholder="Auto-generated"
         />
       </div>
 
-      <p className={styles.hint}>Each slot is exactly 30 minutes. Start times must be on :00 or :30.</p>
-      {error && <p className={styles.hint} style={{ color: "#f87171" }}>{error}</p>}
+      <p className={styles.hint}>
+        Each slot is exactly 30 minutes. Start times are limited to :00 and :30 only.
+      </p>
+      {noTimeOptions && (
+        <p className={styles.hint} style={{ color: "#f87171" }}>
+          There are no valid 30-minute slots left for today.
+        </p>
+      )}
+      {error && (
+        <p className={styles.hint} style={{ color: "#f87171" }}>
+          {error}
+        </p>
+      )}
 
-      <button type="submit" className={styles.submitBtn} disabled={disabled}>
+      <button type="submit" className={styles.submitBtn} disabled={disabled || noTimeOptions}>
         Add Time Slot
       </button>
     </form>

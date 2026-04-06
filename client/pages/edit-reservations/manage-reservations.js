@@ -128,7 +128,7 @@ export default function ManageReservations() {
         );
       } catch (err) {
         console.error("Failed to create slot:", err);
-        alert(err.message || "Failed to create slot.");
+        throw err;
       }
     },
     [selectedLab, date, setSlots]
