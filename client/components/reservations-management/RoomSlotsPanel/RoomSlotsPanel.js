@@ -88,6 +88,7 @@ export default function RoomSlotsPanel({
 
       <AddSlotForm
         onAddSlot={onAddSlot}
+        date={date}
         disabled={!date}
       />
     </div>

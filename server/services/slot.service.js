@@ -4,24 +4,24 @@ const {
     validateThirtyMinuteSlot,
     parseTimeToMinutes,
     canCancelNoShow,
+    getCurrentManilaDateTimeParts,
     getNoShowDeadline,
     getSlotEndDateTime,
 } = require("../utils/slotRules");
 
 exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
-    const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
+    const { currentDate, currentMinutes } = getCurrentManilaDateTimeParts();
     
     const query = { date: requestedDate };
     if (!includeBlocked) {
         query.isAvailable = true;
     }
 
-    if (requestedDate === todayStr) {
+    if (requestedDate === currentDate) {
         // 10 minute grace period
-        const graceTime = new Date(now.getTime() - 10 * 60000);
-        const hours = String(graceTime.getHours()).padStart(2, '0');
-        const minutes = String(graceTime.getMinutes()).padStart(2, '0');
+        const graceMinutes = Math.max(currentMinutes - 10, 0);
+        const hours = String(Math.floor(graceMinutes / 60)).padStart(2, '0');
+        const minutes = String(graceMinutes % 60).padStart(2, '0');
         const currentTimeWithGrace = `${hours}:${minutes}`;
 
         // Only find slots where startTime is greater than or equal to our grace time
@@ -34,6 +34,15 @@ exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
 exports.createSlot = async (slotData) => {
     const { lab, date, startTime, endTime } = slotData;
     const { startMinutes, endMinutes } = validateThirtyMinuteSlot(startTime, endTime);
+    const { currentDate, currentMinutes } = getCurrentManilaDateTimeParts();
+
+    if (date < currentDate) {
+        throw new Error("Cannot add a time slot to a past date.");
+    }
+
+    if (date === currentDate && startMinutes < currentMinutes) {
+        throw new Error("Cannot add a time slot earlier than the current time for today.");
+    }
 
     const existingSlots = await Slot.find({ lab, date });
 
@@ -54,12 +63,11 @@ exports.createSlot = async (slotData) => {
 
 exports.getWeeklyCount = async (startDate, daysCount = 7) => {
     const results = [];
-    const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
+    const { currentDate, currentMinutes } = getCurrentManilaDateTimeParts();
 
     // Calculate grace time 
-    const graceTime = new Date(now.getTime() - 10 * 60000);
-    const currentTimeWithGrace = `${String(graceTime.getHours()).padStart(2, '0')}:${String(graceTime.getMinutes()).padStart(2, '0')}`;
+    const graceMinutes = Math.max(currentMinutes - 10, 0);
+    const currentTimeWithGrace = `${String(Math.floor(graceMinutes / 60)).padStart(2, '0')}:${String(graceMinutes % 60).padStart(2, '0')}`;
 
     for (let i = 0; i < daysCount; i++) {
         const date = new Date(startDate);
@@ -72,11 +80,11 @@ exports.getWeeklyCount = async (startDate, daysCount = 7) => {
         };
 
         // If the date is today, only count upcoming slots
-        if (isoDate === todayStr) {
+        if (isoDate === currentDate) {
             query.startTime = { $gte: currentTimeWithGrace };
         } 
         // If the date is in the past, force count to 0 
-        else if (isoDate < todayStr) {
+        else if (isoDate < currentDate) {
             results.push({ date: isoDate, count: 0 });
             continue;
         }
