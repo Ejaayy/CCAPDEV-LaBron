@@ -97,7 +97,7 @@ export default function LabSlotSelector({ slots, onSelect, selectedSlotId }) {
             >
               <div className={styles.labInfo}>
                 <div className={styles.labName}>
-                  <span>Lab {slot.lab?.name || 'N/A'}</span>
+                  <span>{slot.lab?.name || 'N/A'}</span>
                 </div>
               </div>
 
