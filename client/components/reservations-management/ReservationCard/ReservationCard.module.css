@@ -1,61 +1,52 @@
-/* Reservation Card */
 .card {
   background-color: white;
   border-radius: 16px;
-  border: 2px solid var(--border-light);
+  border: 2px solid #e2e8f0; 
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 260px;
   box-shadow:
-      0 4px 6px -1px rgba(15, 23, 42, 0.08),
-      0 2px 4px -2px rgba(15, 23, 42, 0.04);
+    0 4px 6px -1px rgba(15, 23, 42, 0.08),
+    0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease;
 }
-
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
   margin-bottom: 12px;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .roomName {
-  color: black;
+  color: #0f172a;
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  line-height: 1.2;
+  max-width: 70%;
 }
 
 .status {
-  color: black;
   border-radius: 8px;
   padding: 4px 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.confirmed {
-  background-color: #39a933;
-  color: #ffffff;
-}
+.confirmed { background-color: #39a933; color: #ffffff; }
+.ongoing { background-color: #3b82f6; color: #ffffff; }
+.failed { background-color: #e04545; color: #ffffff; }
+.completed { background-color: #64748b; color: #ffffff; }
 
-.ongoing {
-  background-color: #3b82f6; 
-  color: #ffffff;
-}
-
-.failed {
-  background-color: #e04545; 
-  color: #ffffff;
-}
-
-.completed {
-  background-color: #64748b; 
-  color: #ffffff;
-}
-/* Card Body */
 .cardBody {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-grow: 1; 
 }
 
 .infoRow {
@@ -64,45 +55,30 @@
 }
 
 .label {
-  color: black;
+  color: #000000;
   font-weight: 600;
   margin-right: 6px;
 }
 
-
-
-.participantList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.participant {
-  background-color: #242738;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-}
-
-/* Footer */
 .cardFooter {
-  margin-top: 12px;
+  margin-top: 16px;
   display: flex;
   justify-content: flex-end;
+  min-height: 42px; 
 }
 
 .editBtn {
   background-color: #2c4060;
   color: white;
-  padding: 8px 16px;
+  padding: 8px 18px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
 }
 
 .editBtn:hover {
-  background-color: #2563eb;
+  background-color: #1e2e4a;
 }

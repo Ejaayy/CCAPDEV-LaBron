@@ -3,11 +3,10 @@ import styles from "./ReservationCard.module.css";
 export default function ReservationCard({ reservation, onEdit }) {
   
   const statusStyles = {
-  active: styles.confirmed,
-  ongoing: styles.ongoing,
-  cancelled: styles.failed,
-  completed: styles.completed,
-  Confirmed: styles.confirmed 
+    active: styles.confirmed,
+    ongoing: styles.ongoing,
+    cancelled: styles.failed,
+    completed: styles.completed,
   };
 
   const { 
@@ -18,6 +17,8 @@ export default function ReservationCard({ reservation, onEdit }) {
     reservationTime, 
     seatNumber       
   } = reservation;
+
+  const isEditable = status === "active";
 
   return (
     <div className={styles.card}>
@@ -30,23 +31,26 @@ export default function ReservationCard({ reservation, onEdit }) {
 
       <div className={styles.cardBody}>
         <div className={styles.infoRow}>
-          <span className={styles.label}>Requested On:</span> {requestDateTime || "N/A"}
+          <span className={styles.label}>Requested On:</span> {requestDateTime}
         </div>
         <div className={styles.infoRow}>
-          <span className={styles.label}>Reservation Date:</span> {rawDate || "N/A"}
+          <span className={styles.label}>Reservation Date:</span> {rawDate}
         </div>
         <div className={styles.infoRow}>
-          <span className={styles.label}>Time:</span> {reservationTime || "N/A"}
+          <span className={styles.label}>Time:</span> {reservationTime}
         </div>
         <div className={styles.infoRow}>
-          <span className={styles.label}>Seat Number:</span> {seatNumber || "N/A"}
+          <span className={styles.label}>Seat Number:</span> {seatNumber}
         </div>
       </div>
 
+
       <div className={styles.cardFooter}>
-        <button className={styles.editBtn} onClick={onEdit}>
-          Edit Reservation
-        </button>
+        {isEditable && (
+          <button className={styles.editBtn} onClick={onEdit}>
+            Edit Reservation
+          </button>
+        )}
       </div>
     </div>
   );
