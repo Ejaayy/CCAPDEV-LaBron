@@ -20,7 +20,7 @@ export default function LabSlotSelector({ slots, onSelect, selectedSlotId }) {
     if (slot.date < todayStr) return false;
     if (slot.date === todayStr) {
       const slotStartMinutes = getMinutes(slot.startTime);
-      if (slotStartMinutes < currentMinutes - 15) return false;
+      if (slotStartMinutes < currentMinutes - 10) return false;
     }
 
     // Search-based logic
