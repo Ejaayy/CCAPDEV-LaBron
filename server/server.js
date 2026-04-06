@@ -15,10 +15,14 @@ const userRoutes = require('./routes/userRoute');
 const app = express();
 
 app.use(
-  cors({
-    origin: ["http://localhost:3000", "http://192.168.68.117:3000"],
-    credentials: true,
-  })
+    cors({
+      origin: [
+        "http://localhost:3000",
+        "http://192.168.68.117:3000",
+        process.env.CLIENT_URL
+      ],
+      credentials: true,
+    })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
