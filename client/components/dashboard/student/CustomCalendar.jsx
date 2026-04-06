@@ -6,6 +6,7 @@ const CustomCalendar = ({ reservedDates = [] }) => {
     
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, count: 0 });
 
     // Get the exact number of days in the currently selected month/year
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -45,6 +46,30 @@ const CustomCalendar = ({ reservedDates = [] }) => {
         }
     };
 
+    // Count reservations for a specific date
+    const getReservationCount = (fullDate) => {
+        if (!Array.isArray(reservedDates)) return 0;
+        return reservedDates.filter(d => d === fullDate).length;
+    };
+
+    // Tooltip handlers
+    const handleMouseEnter = (e, fullDate) => {
+        const count = getReservationCount(fullDate);
+        if (count > 0) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setTooltip({
+                visible: true,
+                x: rect.left + rect.width / 2,
+                y: rect.top - 8,
+                count,
+            });
+        }
+    };
+
+    const handleMouseLeave = () => {
+        setTooltip({ visible: false, x: 0, y: 0, count: 0 });
+    };
+
    
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -52,53 +77,71 @@ const CustomCalendar = ({ reservedDates = [] }) => {
     const years = Array.from({ length: 201 }, (_, i) => 1900 + i); 
 
     return (
-        <div className={styles.calendarCard}>
-            <div className={styles.header}>
-                <button className={styles.navBtn} onClick={handlePrevMonth}>&lt;</button>
-                <div className={styles.selectGroup}>
-                    <select 
-                        value={currentMonth} 
-                        onChange={(e) => setCurrentMonth(Number(e.target.value))}
-                    >
-                        {monthNames.map((m, index) => (
-                            <option key={index} value={index}>{m}</option>
-                        ))}
-                    </select>
-                    <select 
-                        value={currentYear} 
-                        onChange={(e) => setCurrentYear(Number(e.target.value))}
-                    >
-                        {years.map(y => (
-                            <option key={y} value={y}>{y}</option>
-                        ))}
-                    </select>
-                </div>  
-                <button className={styles.navBtn} onClick={handleNextMonth}>&gt;</button>
-            </div>
+        <>
+            <div className={styles.calendarCard}>
+                <div className={styles.calendarTitle}>Reservation Calendar</div>
 
-            <div className={styles.grid}>
-                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(dw => (
-                    <div key={dw} className={styles.weekday}>{dw}</div>
-                ))}
-
-                {calendarSlots.map((slot, index) => {
-                    const isReserved = Array.isArray(reservedDates) && reservedDates.includes(slot.fullDate);
-
-                    return (
-                        <div
-                            key={index}
-                            className={`
-                                ${styles.day}
-                                ${!slot.day ? styles.empty : ''}
-                                ${isReserved ? styles.reserved : ''}
-                            `}
+                <div className={styles.header}>
+                    <button className={styles.navBtn} onClick={handlePrevMonth}>&lt;</button>
+                    <div className={styles.selectGroup}>
+                        <select 
+                            value={currentMonth} 
+                            onChange={(e) => setCurrentMonth(Number(e.target.value))}
                         >
-                            {slot.day}
-                        </div>
-                    );
-                })}
+                            {monthNames.map((m, index) => (
+                                <option key={index} value={index}>{m}</option>
+                            ))}
+                        </select>
+                        <select 
+                            value={currentYear} 
+                            onChange={(e) => setCurrentYear(Number(e.target.value))}
+                        >
+                            {years.map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>  
+                    <button className={styles.navBtn} onClick={handleNextMonth}>&gt;</button>
+                </div>
+
+                <div className={styles.grid}>
+                    {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(dw => (
+                        <div key={dw} className={styles.weekday}>{dw}</div>
+                    ))}
+
+                    {calendarSlots.map((slot, index) => {
+                        const isReserved = Array.isArray(reservedDates) && reservedDates.includes(slot.fullDate);
+
+                        return (
+                            <div
+                                key={index}
+                                className={`
+                                    ${styles.day}
+                                    ${!slot.day ? styles.empty : ''}
+                                    ${isReserved ? styles.reserved : ''}
+                                `}
+                                onMouseEnter={isReserved ? (e) => handleMouseEnter(e, slot.fullDate) : undefined}
+                                onMouseLeave={isReserved ? handleMouseLeave : undefined}
+                            >
+                                {slot.day}
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
-        </div>
+
+            {tooltip.visible && (
+                <div
+                    className={styles.tooltip}
+                    style={{
+                        left: tooltip.x,
+                        top: tooltip.y,
+                    }}
+                >
+                    You have {tooltip.count} reservation{tooltip.count !== 1 ? 's' : ''} on this day
+                </div>
+            )}
+        </>
     );
 };
 
