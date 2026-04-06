@@ -276,22 +276,51 @@ exports.getAvailabilityStats = async () => {
     const availableSlots = await Slot.find({
         isAvailable: true,
         $or: [
-            { date: { $gt: currentDate } }, 
-            { date: currentDate, endTime: { $gt: currentTime } } // Gets slots for today that haven't ended yet
+            { date: { $gt: currentDate } },
+            { date: currentDate, endTime: { $gt: currentTime } }
         ]
-    });
-    const slotsAvailable = availableSlots.length;
+    }).populate('lab');
 
     const availableRoomsSet = new Set();
 
     availableSlots.forEach(slot => {
         if (slot.lab) {
-            availableRoomsSet.add(slot.lab.toString());
+            availableRoomsSet.add(slot.lab._id.toString());
         }
     });
 
     const roomsAvailable = availableRoomsSet.size;
-    return { roomsAvailable, slotsAvailable };
+
+    /*
+      Get the unique lab IDs that have at least one available slot,
+      then fetch their total seat counts.
+    */
+    const uniqueLabIds = Array.from(availableRoomsSet);
+    const labs = await Lab.find({ _id: { $in: uniqueLabIds } });
+
+    const totalSeats = labs.reduce((sum, lab) => {
+        const seatCount = Array.isArray(lab.seats) ? lab.seats.length : (lab.seats || 0);
+        return sum + seatCount;
+    }, 0);
+
+    /*
+      Count how many seats are already taken by active reservations
+      whose slots are within the available slots we found.
+    */
+    const availableSlotIds = availableSlots.map(slot => slot._id);
+
+    const activeReservations = await Reservation.find({
+        status: "active",
+        "slots.slot": { $in: availableSlotIds }
+    });
+
+    const takenSeatsCount = activeReservations.reduce((sum, reservation) => {
+        return sum + reservation.slots.length;
+    }, 0);
+
+    const seatsAvailable = Math.max(0, totalSeats - takenSeatsCount);
+
+    return { roomsAvailable, slotsAvailable: seatsAvailable };
 };
 
 exports.cancelNoShowReservation = async (reservationId, actor) => {
