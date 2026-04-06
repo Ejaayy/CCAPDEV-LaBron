@@ -5,7 +5,25 @@ import { useState } from 'react';
 export default function LabSlotSelector({ slots, onSelect, selectedSlotId }) {
   const [searchQuery, setSearchQuery] = useState('');
 
+  const getMinutes = (timeString) => {
+    if (!timeString) return 0;
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
   const filteredSlots = (slots || []).filter((slot) => {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Time-based filtering 
+    if (slot.date < todayStr) return false;
+    if (slot.date === todayStr) {
+      const slotStartMinutes = getMinutes(slot.startTime);
+      if (slotStartMinutes < currentMinutes - 10) return false;
+    }
+
+    // Search-based logic
     const labName = slot.lab?.name || '';
     const labLocation = slot.lab?.location || '';
     return (
@@ -14,13 +32,11 @@ export default function LabSlotSelector({ slots, onSelect, selectedSlotId }) {
     );
   });
 
-
-  if (!slots || !Array.isArray(slots) || slots.length === 0){
+  if (!slots || !Array.isArray(slots) || slots.length === 0) {
     return <div className={styles.noSlots}>No available slots for this date.</div>;
   }
 
   return (
-    
     <div className={styles.slotContainer}>
       {/* Search Bar */}
       <div className={styles.labSearchContainer}>
@@ -36,11 +52,12 @@ export default function LabSlotSelector({ slots, onSelect, selectedSlotId }) {
 
       {filteredSlots.length === 0 ? (
         <div className={styles.noResults}>
-          No labs found matching &quot;{searchQuery}&quot;
+          {searchQuery 
+            ? `No labs found matching "${searchQuery}"`
+            : "No upcoming slots available for today."}
         </div>
       ) : (
         filteredSlots.map((slot) => (
-
           <div 
             key={slot._id} 
             className={`${styles.labRow} ${selectedSlotId === slot._id ? styles.selectedRow : ''}`} 
@@ -49,10 +66,8 @@ export default function LabSlotSelector({ slots, onSelect, selectedSlotId }) {
             {/* Lab Info Column */}
             <div className={styles.labInfo}>
               <div className={styles.labName}>
-           
                 <span>Lab {slot.lab?.name || 'N/A'}</span>
               </div>
-     
             </div>
 
             {/* Duration Column */}

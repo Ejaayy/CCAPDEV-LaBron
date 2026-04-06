@@ -13,7 +13,9 @@ const labSchema = new mongoose.Schema(
         },                                         //Gokongwei, Yuchengco, etc.
         seatCount: {                               // Maximum capacity of room
             type: Number, 
-            required: true 
+            required: true,
+            min: 1,
+            max: 45,
         },          
         seats: { 
             type: [String], 

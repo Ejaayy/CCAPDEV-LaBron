@@ -1,14 +1,61 @@
 const Lab = require("../model/Lab");
 
-//functions needed to generate seat labels
+const MAX_SEAT_COUNT = 45;
+const LOCATION_PATTERN = /^[A-Za-z][A-Za-z\s'-]* Building \d+(st|nd|rd|th) Floor$/;
+const ROOM_CODE_PATTERN = /^[A-Z]\d{3}[A-Z]?$/;
+
+function normalizeText(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
+function getBuildingNameFromLocation(location) {
+  const match = location.match(/^(.*) Building \d+(st|nd|rd|th) Floor$/);
+  return match ? match[1].trim() : "";
+}
+
+function validateLabPayload({ name, location, seatCount }) {
+  const normalizedName = normalizeText(name);
+  const normalizedLocation = normalizeText(location);
+  const seatCountNum = Number(seatCount);
+
+  if (!normalizedName || !normalizedLocation || !seatCountNum) {
+    return "Name, location, and seatCount are required";
+  }
+
+  if (!LOCATION_PATTERN.test(normalizedLocation)) {
+    return 'Location must follow "Building Name Building 5th Floor" format.';
+  }
+
+  const buildingName = getBuildingNameFromLocation(normalizedLocation);
+  const expectedPrefix = `${buildingName} Computer Lab `;
+
+  if (!normalizedName.startsWith(expectedPrefix)) {
+    return `Room name must start with "${expectedPrefix}"`;
+  }
+
+  const roomCode = normalizedName.slice(expectedPrefix.length).trim();
+  if (!ROOM_CODE_PATTERN.test(roomCode)) {
+    return 'Room code must follow DLSU-style format like "G304" or "Y302C".';
+  }
+
+  if (!Number.isInteger(seatCountNum) || seatCountNum < 1) {
+    return "seatCount must be a positive whole number";
+  }
+
+  if (seatCountNum > MAX_SEAT_COUNT) {
+    return `seatCount cannot be more than ${MAX_SEAT_COUNT}`;
+  }
+
+  return null;
+}
+
 function generateSeats(seatCount, seatsPerRow = 3) {
   const rows = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const seats = [];
-  let rowIndex = 0;
 
   for (let i = 0; i < seatCount; i++) {
-    const colIndex = (i % seatsPerRow) + 1;       // 1,2,3 repeated
-    const currentRow = Math.floor(i / seatsPerRow); // 0,0,0 then 1,1,1
+    const colIndex = (i % seatsPerRow) + 1;
+    const currentRow = Math.floor(i / seatsPerRow);
     if (currentRow >= rows.length) {
       throw new Error("Too many seats for the available row letters!");
     }
@@ -17,7 +64,6 @@ function generateSeats(seatCount, seatsPerRow = 3) {
 
   return seats;
 }
-
 
 exports.getAllLabs = async (req, res) => {
   try {
@@ -31,22 +77,19 @@ exports.getAllLabs = async (req, res) => {
 exports.createLab = async (req, res) => {
   try {
     const { name, location, seatCount } = req.body;
-
-    if (!name || !seatCount) {
-      return res.status(400).json({ message: "Name and seatCount are required" });
+    const validationError = validateLabPayload({ name, location, seatCount });
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
     }
 
+    const normalizedName = normalizeText(name);
+    const normalizedLocation = normalizeText(location);
     const seatCountNum = Number(seatCount);
-    if (isNaN(seatCountNum) || seatCountNum < 1) {
-      return res.status(400).json({ message: "seatCount must be a positive number" });
-    }
-
-    // Always generate seats properly
     const seatsArray = generateSeats(seatCountNum, 3);
 
     const lab = new Lab({
-      name,
-      location: location || "",
+      name: normalizedName,
+      location: normalizedLocation,
       seatCount: seatCountNum,
       seats: seatsArray,
     });

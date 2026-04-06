@@ -4,17 +4,20 @@ import { useEffect, useState } from "react";
 
 import HomeNavbar from "@/components/layout/HomeNavbar/HomeNavbar";
 import { API_BASE_URL } from "@/constants/api";
+import useAuth from "@/hooks/useAuth";
 import { useUser } from "@/hooks/useUsers";
-import { getPublicReservationsByUser } from "@/lib/reservations";
+import { getPublicReservationsByUser, updateReservationStatus } from "@/lib/reservations";
 
 export default function ViewProfile() {
   const router = useRouter();
   const { userId } = router.query;
 
+  const { user: currentUser } = useAuth();
   const { user, loading: userLoading, error: userError } = useUser(userId);
   const [reservations, setReservations] = useState([]);
   const [reservationsLoading, setReservationsLoading] = useState(true);
   const [reservationsError, setReservationsError] = useState(null);
+  const [statusUpdateId, setStatusUpdateId] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -83,6 +86,34 @@ export default function ViewProfile() {
   }
 
   const assetBaseUrl = API_BASE_URL.replace("/api", "");
+  const isTechnician = currentUser?.role === "technician";
+
+  const handleToggleReservationStatus = async (reservation) => {
+    const reservationId = reservation.id || reservation._id;
+    const nextStatus = reservation.status === "cancelled" ? "active" : "cancelled";
+
+    if (!reservationId) return;
+
+    setStatusUpdateId(reservationId);
+
+    const previousReservations = reservations;
+    setReservations((prev) =>
+      prev.map((item) =>
+        (item.id || item._id) === reservationId
+          ? { ...item, status: nextStatus }
+          : item
+      )
+    );
+
+    try {
+      await updateReservationStatus(reservationId, nextStatus);
+    } catch (err) {
+      setReservations(previousReservations);
+      alert(err.message || "Failed to update reservation status.");
+    } finally {
+      setStatusUpdateId(null);
+    }
+  };
 
   return (
     <div style={{ backgroundColor: "#070B20", minHeight: "100vh", paddingBottom: "50px" }}>
@@ -187,6 +218,37 @@ export default function ViewProfile() {
                     >
                       {reservation.status}
                     </span>
+
+                    {isTechnician && (
+                      <div style={{ marginTop: "10px" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleReservationStatus(reservation)}
+                          disabled={statusUpdateId === (reservation.id || reservation._id)}
+                          style={{
+                            padding: "8px 12px",
+                            borderRadius: "8px",
+                            border: "none",
+                            cursor:
+                              statusUpdateId === (reservation.id || reservation._id)
+                                ? "not-allowed"
+                                : "pointer",
+                            backgroundColor:
+                              reservation.status === "cancelled" ? "#22C55E" : "#F59E0B",
+                            color: "white",
+                            fontWeight: "bold",
+                            opacity:
+                              statusUpdateId === (reservation.id || reservation._id) ? 0.7 : 1,
+                          }}
+                        >
+                          {statusUpdateId === (reservation.id || reservation._id)
+                            ? "Updating..."
+                            : reservation.status === "cancelled"
+                              ? "Uncancel"
+                              : "Cancel"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

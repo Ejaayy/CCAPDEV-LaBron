@@ -41,3 +41,10 @@ export function updateReservationSeats(reservationId, seats) {
     body: JSON.stringify({ seats }),
   });
 }
+
+export function updateReservationStatus(reservationId, status) {
+  return apiJson(`/reservations/${reservationId}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+}
