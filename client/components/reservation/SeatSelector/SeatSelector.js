@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { API_BASE_URL } from "@/constants/api";
 import styles from "./SeatSelector.module.css";
 
-/**
- * lockedSeats: seats already owned by the reservation being edited.
- * initialSelectedSeats: starting selection for edit mode.
- * allowLockedSeatRemoval: whether those owned seats can be deselected.
- */
 export default function SeatSelector({
   onSelect,
   selectedSlotId,
@@ -15,9 +12,10 @@ export default function SeatSelector({
   allowLockedSeatRemoval = false,
 }) {
   const currentSeats = labData?.seats || [];
-
   const [occupiedSeats, setOccupiedSeats] = useState([]);
+  const [reservations, setReservations] = useState([]); 
   const [selectedSeats, setSelectedSeats] = useState(() => [...initialSelectedSeats]);
+  const [hoveredSeat, setHoveredSeat] = useState(null);
 
   useEffect(() => {
     setSelectedSeats([...initialSelectedSeats]);
@@ -26,24 +24,21 @@ export default function SeatSelector({
   useEffect(() => {
     const fetchOccupancy = async () => {
       if (!selectedSlotId) return;
-
       try {
-        const response = await fetch(`http://localhost:3001/api/slots/${selectedSlotId}/occupancy`);
+        const response = await fetch(`http://localhost:3001/api/slots/${selectedSlotId}/occupancy?details=true`);
         const data = await response.json();
-        setOccupiedSeats(Array.isArray(data) ? data : []);
+        setOccupiedSeats(data.occupiedSeats || []);
+        setReservations(data.reservations || []);
       } catch (error) {
         console.error("Failed to fetch seat occupancy:", error);
       }
     };
-
     fetchOccupancy();
   }, [selectedSlotId]);
 
   const handleSeatClick = (seatId) => {
     if (!currentSeats.includes(seatId)) return;
-
     const isOwnedSeat = lockedSeats.includes(seatId);
-
     if (isOwnedSeat && !allowLockedSeatRemoval) return;
     if (occupiedSeats.includes(seatId) && !isOwnedSeat) return;
 
@@ -55,24 +50,57 @@ export default function SeatSelector({
     onSelect(nextSeats);
   };
 
+  const getTooltipContent = (seatId) => {
+    const res = reservations.find((r) => r.seats && r.seats.includes(seatId));
+    if (!res) return null;
+
+    if (res.isAnonymous) {
+      return <div className={styles.anonymousTooltip}>Reserved Anonymously</div>;
+    }
+
+    const avatarSrc = res.profilePicturePath
+      ? `${API_BASE_URL.replace("/api", "")}${res.profilePicturePath}`
+      : `${API_BASE_URL.replace("/api", "")}/uploads/profiles/default.png`;
+
+    return (
+      <div className={styles.studentTooltipCard}>
+        <div className={styles.avatarPlaceholder}>
+          <img
+            src={avatarSrc}
+            alt="avatar"
+            className={styles.avatarImage}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            }}
+          />
+        </div>
+        <p className={styles.studentName}>{res.name}</p>
+        <Link
+          href={`/viewProfile?userId=${res.studentId}`}
+          className={styles.viewProfileLink}
+        >
+          View Profile
+        </Link>
+      </div>
+    );
+  };
+
   const renderTables = () => {
     const seatsPerRow = 3;
     const tableGroups = [];
-
     for (let i = 0; i < currentSeats.length; i += seatsPerRow) {
       tableGroups.push({
         id: `T${Math.floor(i / seatsPerRow) + 1}`,
         seats: currentSeats.slice(i, i + seatsPerRow),
       });
     }
-
     return tableGroups;
   };
 
   const isEditMode = lockedSeats.length > 0;
-  const addedSeats = selectedSeats.filter((id) => !lockedSeats.includes(id));
-  const removedSeats = lockedSeats.filter((id) => !selectedSeats.includes(id));
-  const hasEditChanges = addedSeats.length > 0 || removedSeats.length > 0;
+  const hasEditChanges = selectedSeats.length !== initialSelectedSeats.length || 
+                         selectedSeats.some(s => !initialSelectedSeats.includes(s));
 
   return (
     <div className={styles.seatSelectionContainer}>
@@ -88,13 +116,11 @@ export default function SeatSelector({
 
         <div className={styles.workbenchGrid}>
           <div className={styles.tableSurface}>Front Board</div>
-
           {renderTables().map((table) => (
             <div key={table.id} className={styles.tableBlock}>
               <div className={styles.tableSurface}>
                 <span className={styles.tableLabel}>{table.id}</span>
               </div>
-
               <div className={styles.seatsRow}>
                 {table.seats.map((seatId) => {
                   const isOwnedSeat = lockedSeats.includes(seatId);
@@ -105,24 +131,20 @@ export default function SeatSelector({
                     <div
                       key={seatId}
                       className={`${styles.seatBox} ${
-                        isOwnedSeat && isSelected
-                          ? styles.seatYours
-                          : isReserved
-                            ? styles.seatReserved
-                            : isSelected
-                              ? styles.seatSelecting
-                              : styles.seatAvailable
+                        isOwnedSeat && isSelected ? styles.seatYours :
+                        isReserved ? styles.seatReserved :
+                        isSelected ? styles.seatSelecting : styles.seatAvailable
                       }`}
                       onClick={() => handleSeatClick(seatId)}
-                      title={
-                        isOwnedSeat
-                          ? allowLockedSeatRemoval
-                            ? "Currently part of this reservation. Click to keep or remove it."
-                            : "Already reserved by you and cannot be removed here."
-                          : undefined
-                      }
+                      onMouseEnter={() => isReserved && setHoveredSeat(seatId)}
+                      onMouseLeave={() => setHoveredSeat(null)}
                     >
                       {seatId}
+                      {isReserved && hoveredSeat === seatId && (
+                        <div className={styles.tooltip}>
+                          {getTooltipContent(seatId)}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -133,52 +155,19 @@ export default function SeatSelector({
       </div>
 
       <div className={styles.summarySidebar}>
-        <h3>Reservation Summary</h3>
+        <h3>Summary</h3>
         <div className={styles.summaryContent}>
           <div className={styles.summaryRow}>
-            <span>Lab Room:</span>
+            <span>Lab:</span>
             <span>{labData?.name}</span>
           </div>
-
-          {isEditMode && (
-            <div className={styles.summaryRow}>
-              <span>Current seats:</span>
-              <span className={styles.lockedText}>{lockedSeats.join(", ")}</span>
-            </div>
-          )}
-
           <div className={styles.summaryRow}>
-            <span>{isEditMode ? "Selected now:" : "Seats:"}</span>
+            <span>Seats:</span>
             <span className={styles.highlightText}>
               {selectedSeats.length > 0 ? selectedSeats.join(", ") : "None"}
             </span>
           </div>
-
-          {isEditMode && (
-            <>
-              <div className={styles.summaryRow}>
-                <span>Adding:</span>
-                <span className={styles.highlightText}>
-                  {addedSeats.length > 0 ? addedSeats.join(", ") : "None"}
-                </span>
-              </div>
-
-              <div className={styles.summaryRow}>
-                <span>Removing:</span>
-                <span className={styles.highlightText}>
-                  {removedSeats.length > 0 ? removedSeats.join(", ") : "None"}
-                </span>
-              </div>
-            </>
-          )}
-
-          <div className={styles.summaryRow}>
-            <span>{isEditMode ? "Total after update:" : "Total:"}</span>
-            <span>{selectedSeats.length}</span>
-          </div>
-
           <hr className={styles.subDivider} />
-
           <button
             className={styles.clearButton}
             onClick={() => {
@@ -188,7 +177,7 @@ export default function SeatSelector({
             }}
             disabled={isEditMode ? !hasEditChanges : selectedSeats.length === 0}
           >
-            {isEditMode ? "Reset to Current Seats" : "Clear Selection"}
+            {isEditMode ? "Reset" : "Clear"}
           </button>
         </div>
       </div>

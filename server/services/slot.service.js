@@ -124,10 +124,10 @@ exports.getSlotReservationDetails = async (slotId) => {
 
     const reservations = await Reservation.find({
         "slots.slot": slotId,
-        status: { $in: ["active", "cancelled"] },
+        status: "active",
     })
-        .populate("reservedFor", "firstName lastName")
-        .populate("reservedBy", "firstName lastName");
+    .populate("reservedFor", "firstName lastName profilePicturePath") 
+    .populate("reservedBy", "firstName lastName");
 
     const occupiedSeats = [];
     const reservationDetails = reservations.map((reservation) => {
@@ -135,9 +135,7 @@ exports.getSlotReservationDetails = async (slotId) => {
             .filter((slotEntry) => slotEntry.slot.toString() === slotId.toString())
             .map((slotEntry) => slotEntry.seat);
 
-        if (reservation.status === "active") {
-            occupiedSeats.push(...seats);
-        }
+        occupiedSeats.push(...seats);
 
         const userName = reservation.reservedFor
             ? reservation.isAnonymous
@@ -149,9 +147,11 @@ exports.getSlotReservationDetails = async (slotId) => {
             reservationId: reservation._id.toString(),
             studentId: reservation.reservedFor?._id?.toString() || null,
             name: userName,
+            profilePicturePath: reservation.reservedFor?.profilePicturePath || null,
             seats,
             seatNumber: seats.join(", "),
             status: reservation.status,
+            isAnonymous: reservation.isAnonymous
         };
     });
 
