@@ -22,6 +22,30 @@
   cursor: pointer;
 }
 
+.labSearchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  background-color: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0 1rem;
+  transition: all 0.2s ease;
+}
+
+.labSearchInput {
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #1e293b;
+  font-size: 0.95rem;
+  font-family: inherit;
+  margin-left: 10px;
+}
+
 .labInfo {
   display: flex;
   flex-direction: column;
