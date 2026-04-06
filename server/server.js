@@ -14,6 +14,8 @@ const userRoutes = require('./routes/userRoute');
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(
     cors({
       origin: [
@@ -27,7 +29,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 app.use(session({
   secret: process.env.SESSION_SECRET || "ccapdev-secret",
   resave: false,
@@ -35,8 +36,8 @@ app.use(session({
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     maxAge: 1000 * 60 * 60 * 24,
-    secure: false,
-    sameSite: 'lax'
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
   }
 }));
 
