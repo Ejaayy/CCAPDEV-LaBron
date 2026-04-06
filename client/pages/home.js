@@ -61,7 +61,39 @@ export default function Home() {
   const { stats } = useMyStats(); //summary info for dashboard
   const { availability } = useAvailabilityStats(); //number of available rooms/slots
 
-   /*
+  /*
+    Filter only active reservations.
+    Used for both the calendar highlights and upcoming reservations list.
+  */
+  const activeReservations = useMemo(() => {
+    return reservations.filter(r => r.status === "active");
+  }, [reservations]);
+
+  /*
+    useMemo caches computed values so they are not recalculated
+    unless reservations change.
+
+    sortedReservations -> reservations ordered by date/time
+    reservedDates -> list of unique dates for calendar highlighting
+  */
+  const sortedReservations = useMemo(() => {
+    return sortReservationsByStart(activeReservations);
+  }, [activeReservations]);
+
+  const reservedDates = useMemo(() => {
+    return getReservedDates(sortedReservations);
+  }, [sortedReservations]);
+
+  /*
+    Reactively computes the latest reservation date from sortedReservations.
+    By the time the user clicks the button, this value is already ready.
+  */
+  const latestReservationDate = useMemo(() => {
+    if (sortedReservations.length === 0) return null;
+    return sortedReservations[sortedReservations.length - 1].rawDate;
+  }, [sortedReservations]);
+
+  /*
     Quick action buttons shown in WeeklyStats component.
     Each button redirects the user to a page.
   */
@@ -71,7 +103,13 @@ export default function Home() {
       label: "Reserve Next Available Slot",
       icon: "/next_available_seat.png",
       onClick: () => {
-        router.push("/reserve?autoSelect=true");
+        router.push({
+          pathname: "/reserve",
+          query: {
+            autoSelect: true,
+            ...(latestReservationDate && { date: latestReservationDate }),
+          },
+        });
       },
     },
     {
@@ -83,21 +121,6 @@ export default function Home() {
       },
     },
   ];
-
-  /*
-    useMemo caches computed values so they are not recalculated
-    unless reservations change.
-
-    sortedReservations -> reservations ordered by date/time
-    reservedDates -> list of unique dates for calendar highlighting
-  */
-  const sortedReservations = useMemo(() => {
-    return sortReservationsByStart(reservations);
-  }, [reservations]);
-
-  const reservedDates = useMemo(() => {
-    return getReservedDates(sortedReservations);
-  }, [sortedReservations]);
 
   return (
     <AuthWrapper>

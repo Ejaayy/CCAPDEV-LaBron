@@ -36,7 +36,7 @@ function getNextSevenDays() {
 
 export default function ReservePage() {
   const router = useRouter();
-  const { autoSelect } = router.query;
+  const { autoSelect, date: queryDate } = router.query;
 
   const { user, loading: userLoading } = useAuth();
   const { overview } = useWeeklyOverview();
@@ -69,13 +69,18 @@ export default function ReservePage() {
       return null;
     }
 
+    // If a specific date was passed from home.js, use it directly
+    if (queryDate) {
+      return queryDate;
+    }
+
     const upcomingDays = baseDates.map((day) => day.isoDate);
     const targetDayObject = overview.find(
       (item) => item.count > 0 && upcomingDays.includes(item.date)
     );
 
     return targetDayObject?.date || defaultDate;
-  }, [router.isReady, autoSelect, overview, baseDates, defaultDate]);
+  }, [router.isReady, autoSelect, queryDate, overview, baseDates, defaultDate]);
 
   const effectiveSelectedDate = manualSelectedDate ?? autoSelectedDate ?? defaultDate;
 
@@ -101,12 +106,14 @@ export default function ReservePage() {
 
   const totalSteps = 3;
 
+  // 1. Auth redirect
   useEffect(() => {
     if (!userLoading && !user) {
       router.push("/auth/login");
     }
   }, [userLoading, user, router]);
 
+  // 2. Countdown redirect after submission
   useEffect(() => {
     if (isSubmitted && countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -118,13 +125,26 @@ export default function ReservePage() {
     }
   }, [isSubmitted, countdown, router]);
 
+  // 3. Clean up URL after slot is selected
   useEffect(() => {
-    if (autoSelect === "true" && effectiveSelectedLabSlot && router.isReady) {
+    if (autoSelect === "true" && effectiveSelectedLabSlot && router.isReady && currentStep > 1) {
       router.replace("/reserve", undefined, { shallow: true });
     }
-  }, [autoSelect, effectiveSelectedLabSlot, router]);
+  }, [autoSelect, effectiveSelectedLabSlot, router, currentStep]);
+
+  // 4. Commit autoselected slot into state so it survives URL cleanup
+  useEffect(() => {
+    if (autoSelect === "true" && autoSelectedLabSlot && !selectedLabSlot) {
+      setSelectedLabSlot(autoSelectedLabSlot);
+    }
+  }, [autoSelect, autoSelectedLabSlot, selectedLabSlot]);
 
   async function handleSubmitReservation() {
+    if (!effectiveSelectedLabSlot) {
+      alert("No lab slot selected. Please go back and select a slot.");
+      return;
+    }
+
     const reservationData = {
       reservedBy: user?._id,
       reservedFor: user?._id,
