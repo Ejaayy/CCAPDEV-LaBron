@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 import HomeNavbar from "@/components/layout/HomeNavbar/HomeNavbar";
 import styles from "../components/layout/HomeNavbar/HomeNavbar.module.css";
 
-
 import CustomCalendar from "@/components/dashboard/student/CustomCalendar";
 import WeeklyStats from "@/components/dashboard/student/WeeklyStats";
 import WelcomeUser from "@/components/dashboard/student/WelcomeUser";
