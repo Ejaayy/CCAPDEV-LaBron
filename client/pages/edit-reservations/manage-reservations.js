@@ -149,7 +149,6 @@ export default function ManageReservations() {
       setSelectedSlot(null);
     } catch (err) {
       console.error("Failed to create room:", err);
-      alert(err.message || "Failed to create room.");
       throw err;
     }
   };
