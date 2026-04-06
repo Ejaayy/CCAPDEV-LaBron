@@ -254,7 +254,6 @@ export default function ManageReservations() {
 
     try {
       await updateReservationStatus(student.reservationId, nextStatus);
-      await handleSlotClick(selectedSlot.slot);
     } catch (err) {
       console.error("Failed to update reservation status:", err);
       alert(err.message || "Failed to update reservation status.");
