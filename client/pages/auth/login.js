@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/router";
+import useAuth from "@/hooks/useAuth";
 import loginStyles from "./login.module.css";
 import { login, register, forgotPassword } from "@/lib/auth";
 
@@ -10,7 +12,7 @@ export default function Login() {
 
   // allows redirecting user to another page after login
   const router = useRouter();
-
+  const { user, loading } = useAuth();
 
   // stores the user's login email input
   const [loginEmail, setLoginEmail] = useState("");
@@ -60,6 +62,15 @@ export default function Login() {
     }));
   };
 
+  useEffect(() => {
+    if (!loading && user) {
+      if (user.role === 'technician') {
+        router.push('/home-tech');
+      } else {
+        router.push('/home');
+      }
+    }
+  }, [user, loading, router]);
 
   // handles register form submission
   async function handleRegister(e) {
@@ -150,6 +161,10 @@ export default function Login() {
       setForgotMessage(error.message || "Failed to send reset link.");
       setForgotStatus("error");
     }
+  }
+
+  if (loading || user) {
+    return <div className="spinner"></div>;
   }
 
   return (

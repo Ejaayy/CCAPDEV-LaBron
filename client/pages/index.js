@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import styles from '../styles/Landing.module.css';
 import Navbar from '../components/layout/Navbar/Navbar';
 import Footer from '../components/layout/Footer/Footer';
+
+import useAuth from "@/hooks/useAuth";
 import { useRouter } from 'next/router';
 
 const geistSans = Geist({
@@ -19,8 +21,18 @@ const geistMono = Geist_Mono({
 export default function Home() {
   const router = useRouter();
 
-  const goToLogin = () => {
-    router.push('/auth/login');
+  const { user, loading } = useAuth();
+
+  const handleAction = () => {
+    if (user) {
+      if (user.role === 'technician') {
+        router.push('/home-tech');
+      } else {
+        router.push('/home');
+      }
+    } else {
+      router.push('/auth/login');
+    }
   }
 
   return (
@@ -40,8 +52,15 @@ export default function Home() {
               The most accessible Laboratories in DLSU
             </p>
             <div className="d-flex gap-3">
-              <button className={`${styles['btn-primary-custom']}`} onClick={goToLogin}>BOOK SEATS</button>
-              <button className={`${styles['btn-outline-custom']}`} onClick={goToLogin}>EDIT BOOKING</button>
+              <button className={`${styles['btn-primary-custom']}`} onClick={handleAction}>
+                {user ? "GO TO DASHBOARD" : "BOOK SEATS"}
+              </button>
+
+              {!user && (
+                  <button className={`${styles['btn-outline-custom']}`} onClick={handleAction}>
+                    EDIT BOOKING
+                  </button>
+              )}
             </div>
           </div>
           <div className={`${styles['custom-blur']}`}></div>
