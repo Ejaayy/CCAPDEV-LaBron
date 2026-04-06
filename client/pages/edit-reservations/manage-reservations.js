@@ -18,6 +18,7 @@ import { useSlotsByDate } from "@/hooks/useSlots";
 import {
   cancelNoShowReservation,
   createReservation,
+  updateReservationStatus,
   updateReservationSeats,
 } from "@/lib/reservations";
 import { createSlot, getSlotOccupancy } from "@/lib/slots";
@@ -233,6 +234,41 @@ export default function ManageReservations() {
     }
   };
 
+  const handleToggleCancelled = async (student) => {
+    if (!selectedSlot) return;
+
+    const previousStudents = [...(selectedSlot.slot.students || [])];
+    const nextStatus = student.status === "cancelled" ? "active" : "cancelled";
+
+    setSelectedSlot((prev) => ({
+      ...prev,
+      slot: {
+        ...prev.slot,
+        students: prev.slot.students.map((item) =>
+          item.reservationId === student.reservationId
+            ? { ...item, status: nextStatus }
+            : item
+        ),
+      },
+    }));
+
+    try {
+      await updateReservationStatus(student.reservationId, nextStatus);
+      await handleSlotClick(selectedSlot.slot);
+    } catch (err) {
+      console.error("Failed to update reservation status:", err);
+      alert(err.message || "Failed to update reservation status.");
+
+      setSelectedSlot((prev) => ({
+        ...prev,
+        slot: {
+          ...prev.slot,
+          students: previousStudents,
+        },
+      }));
+    }
+  };
+
   const handleBackToSlots = () => {
     setSelectedSlot(null);
   };
@@ -244,6 +280,7 @@ export default function ManageReservations() {
           selectedSlot={selectedSlot}
           onOpenStudentSelector={() => setIsStudentSelectorOpen(true)}
           onEditReservation={handleEditReservation}
+          onToggleCancelled={handleToggleCancelled}
           removeStudent={handleRemoveStudent}
           onBack={handleBackToSlots}
           user={user}

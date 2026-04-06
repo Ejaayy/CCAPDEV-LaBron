@@ -55,6 +55,11 @@
   border-color: #475569;
 }
 
+.studentRowCancelled {
+  opacity: 0.75;
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
 /* Add / Remove Buttons */
 .addStudentInput {
   width: 100%;
@@ -236,9 +241,40 @@
   color: #94a3b8;
 }
 
+.studentStatusText {
+  font-size: 0.75rem;
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .studentActions {
   display: flex;
   gap: 6px;
+}
+
+.toggleCancelBtn {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.toggleCancelBtn:hover {
+  background: #d97706;
+}
+
+.uncancelBtn {
+  background: #22c55e;
+}
+
+.uncancelBtn:hover {
+  background: #16a34a;
 }
 
 /* Solid Back Button */

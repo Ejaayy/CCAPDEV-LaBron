@@ -4,6 +4,7 @@ export default function Panel({
   selectedSlot,
   onOpenStudentSelector,
   onEditReservation,
+  onToggleCancelled,
   removeStudent,
   onBack,
 }) {
@@ -47,12 +48,20 @@ export default function Panel({
 
       <div className={styles.studentList}>
         {slot.students && slot.students.map((student) => (
-          <div key={student.reservationId} className={styles.studentRow}>
+          <div
+            key={student.reservationId}
+            className={`${styles.studentRow} ${
+              student.status === "cancelled" ? styles.studentRowCancelled : ""
+            }`}
+          >
             <div className={styles.studentInfo}>
               <span className={styles.studentNameText}>{student.name}</span>
               <span className={styles.studentSeatText}>
                 Seat{student.seats?.length > 1 ? "s" : ""}: {student.seatNumber}
               </span>
+              {student.status === "cancelled" && (
+                <span className={styles.studentStatusText}>Cancelled</span>
+              )}
             </div>
 
             <div className={styles.studentActions}>
@@ -63,11 +72,21 @@ export default function Panel({
                 Edit
               </button>
               <button
+                className={`${styles.toggleCancelBtn} ${
+                  student.status === "cancelled" ? styles.uncancelBtn : ""
+                }`}
+                onClick={() => onToggleCancelled(student)}
+              >
+                {student.status === "cancelled" ? "Uncancel" : "Cancel"}
+              </button>
+              <button
                 className={styles.removeBtn}
                 onClick={() => removeStudent(student.reservationId)}
-                disabled={!slot.canCancelNoShow}
+                disabled={!slot.canCancelNoShow || student.status === "cancelled"}
                 title={
-                  slot.canCancelNoShow
+                  student.status === "cancelled"
+                    ? "Cancelled reservations cannot be marked as no-show"
+                    : slot.canCancelNoShow
                     ? "Cancel entire reservation as no-show"
                     : "No-show cancellation is only allowed after the 10-minute grace period and before the slot ends"
                 }

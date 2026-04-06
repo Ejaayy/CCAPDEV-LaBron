@@ -183,6 +183,30 @@ exports.cancelNoShowReservation = async (req, res) => {
     }
 };
 
+exports.updateReservationStatus = async (req, res) => {
+    try {
+        const { reservationId } = req.params;
+        const { status } = req.body;
+
+        const result = await reservationService.updateReservationStatus(reservationId, status, {
+            userId: req.session.userId,
+            role: req.session.role,
+        });
+
+        res.status(200).json({
+            message: `Reservation status updated to ${result.status}.`,
+            reservation: result,
+        });
+    } catch (error) {
+        const statusCode =
+            error.message === "Reservation not found" ? 404 :
+            error.message === "Only technicians can update reservation statuses." ? 403 :
+            400;
+
+        res.status(statusCode).json({ message: error.message });
+    }
+};
+
 exports.addSeatsToReservation = async (req, res) => {
     try {
         const { reservationId } = req.params;

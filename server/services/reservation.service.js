@@ -337,6 +337,61 @@ exports.cancelNoShowReservation = async (reservationId, actor) => {
     return reservation;
 };
 
+exports.updateReservationStatus = async (reservationId, nextStatus, actor) => {
+    if (!actor?.userId || actor.role !== "technician") {
+        throw new Error("Only technicians can update reservation statuses.");
+    }
+
+    if (!["active", "cancelled"].includes(nextStatus)) {
+        throw new Error("Status must be either active or cancelled.");
+    }
+
+    const reservation = await Reservation.findById(reservationId).populate("slots.slot");
+
+    if (!reservation) {
+        throw new Error("Reservation not found");
+    }
+
+    if (reservation.status === "completed") {
+        throw new Error("Completed reservations cannot be changed.");
+    }
+
+    if (reservation.status === nextStatus) {
+        return reservation;
+    }
+
+    if (nextStatus === "active") {
+        const requestedSlotId = reservation.slots?.[0]?.slot?._id || reservation.slots?.[0]?.slot;
+        const requestedSeats = reservation.slots.map((slotEntry) => slotEntry.seat);
+
+        const seatCollision = await Reservation.findOne({
+            _id: { $ne: reservation._id },
+            status: "active",
+            slots: {
+                $elemMatch: {
+                    slot: requestedSlotId,
+                    seat: { $in: requestedSeats },
+                }
+            }
+        });
+
+        if (seatCollision) {
+            const takenSeats = seatCollision.slots
+                .filter((slotEntry) =>
+                    slotEntry.slot.toString() === requestedSlotId.toString() &&
+                    requestedSeats.includes(slotEntry.seat)
+                )
+                .map((slotEntry) => slotEntry.seat);
+
+            throw new Error(`Cannot uncancel reservation. Seat(s) ${takenSeats.join(", ")} are already taken.`);
+        }
+    }
+
+    reservation.status = nextStatus;
+    await reservation.save();
+    return reservation;
+};
+
 exports.addSeats = async (reservationId, newSeatArray) => {
     const reservation = await Reservation.findById(reservationId);
     

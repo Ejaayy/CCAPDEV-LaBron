@@ -112,7 +112,7 @@ exports.getSlotReservationDetails = async (slotId) => {
 
     const reservations = await Reservation.find({
         "slots.slot": slotId,
-        status: "active",
+        status: { $in: ["active", "cancelled"] },
     })
         .populate("reservedFor", "firstName lastName")
         .populate("reservedBy", "firstName lastName");
@@ -123,7 +123,9 @@ exports.getSlotReservationDetails = async (slotId) => {
             .filter((slotEntry) => slotEntry.slot.toString() === slotId.toString())
             .map((slotEntry) => slotEntry.seat);
 
-        occupiedSeats.push(...seats);
+        if (reservation.status === "active") {
+            occupiedSeats.push(...seats);
+        }
 
         const userName = reservation.reservedFor
             ? reservation.isAnonymous
@@ -137,6 +139,7 @@ exports.getSlotReservationDetails = async (slotId) => {
             name: userName,
             seats,
             seatNumber: seats.join(", "),
+            status: reservation.status,
         };
     });
 
