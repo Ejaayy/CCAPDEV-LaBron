@@ -299,3 +299,8 @@
 }
 
 .nav-btn:hover { background-color: #66c0f4; }
+
+.input-active {
+    background-color: white !important;
+    color: black !important;
+}

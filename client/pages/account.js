@@ -10,20 +10,27 @@ import { useMyReservations } from "@/hooks/useReservations";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { updateProfile, deleteAccount } from "@/lib/users";
+import UpcomingStyles from "@/styles/Upcoming.module.css";
 
-function getDynamicStatus(reservation) {
-  if (reservation.status !== "active") return reservation.status;
+function getRealStatus(reservation) {
+  if (reservation.status === "cancelled") return "Cancelled";
+  if (reservation.status === "completed") return "Completed";
 
-  if (reservation.rawDate && reservation.reservationTime && reservation.reservationTime !== "N/A") {
-    const endTimeStr = reservation.reservationTime.split(" - ")[1];
+  if (reservation.status === "active" && reservation.rawDate && reservation.reservationTime && reservation.reservationTime !== "N/A") {
+    const now = new Date();
+    const [startTimeStr, endTimeStr] = reservation.reservationTime.split(" - ");
+
+    const startDateTime = new Date(`${reservation.rawDate} ${startTimeStr}`);
     const endDateTime = new Date(`${reservation.rawDate} ${endTimeStr}`);
 
-    if (new Date() > endDateTime) {
-      return "expired";
+    if (now >= startDateTime && now <= endDateTime) {
+      return "Ongoing";
+    } else if (now > endDateTime) {
+      return "Completed";
     }
   }
 
-  return "active";
+  return "Active";
 }
 
 export default function Account() {
@@ -109,7 +116,7 @@ export default function Account() {
                   <label>First Name</label>
                   <input
                       type="text"
-                      className={AccountStyles["custom-input"]}
+                      className={`${AccountStyles["custom-input"]} ${isEditing ? AccountStyles["input-active"] : ""}`}
                       value={isEditing ? editData.firstName : user.firstName}
                       onChange={(e) => setEditData({...editData, firstName: e.target.value})}
                       readOnly={!isEditing}
@@ -120,7 +127,7 @@ export default function Account() {
                   <label>Last Name</label>
                   <input
                       type="text"
-                      className={AccountStyles["custom-input"]}
+                      className={`${AccountStyles["custom-input"]} ${isEditing ? AccountStyles["input-active"] : ""}`}
                       value={isEditing ? editData.lastName : user.lastName}
                       onChange={(e) => setEditData({...editData, lastName: e.target.value})}
                       readOnly={!isEditing}
@@ -153,7 +160,7 @@ export default function Account() {
               <div className={AccountStyles["bio-section"]}>
                 {isEditing ? (
                     <textarea
-                        className={AccountStyles["custom-input"]}
+                        className={`${AccountStyles["custom-input"]} ${isEditing ? AccountStyles["input-active"] : ""}`}
                         value={editData.description}
                         onChange={(e) => setEditData({ ...editData, description: e.target.value })}
                         style={{ width: "100%", height: "80px", resize: "none", marginTop: "10px" }}
@@ -215,64 +222,57 @@ export default function Account() {
           <div className={AccountStyles["sub-panel"]}>
             <h3 className={AccountStyles["activity-title"]}>My Reservations</h3>
 
-            <div className={AccountStyles["carousel-container"]}>
-              <button className={AccountStyles["nav-btn"]} onClick={() => scroll("left")}>
-                &#8249;
-              </button>
-
-              <div className={AccountStyles["reservation-track"]} ref={scrollRef}>
-                {displayReservations.length > 0 ? (
+            <div className={UpcomingStyles["res-scroll-container"]} style={{ maxHeight: "350px" }}>
+              {displayReservations.length > 0 ? (
                   displayReservations.map((reservation, index) => {
-                    const currentStatus = getDynamicStatus(reservation);
+                    const currentStatus = getRealStatus(reservation);
+
+                    let statusColor = "#4CAF50";
+                    let statusBg = "#4CAF5022";
+                    if (currentStatus === "Cancelled") { statusColor = "#f44336"; statusBg = "#f4433622"; }
+                    if (currentStatus === "Completed") { statusColor = "#9e9e9e"; statusBg = "#9e9e9e22"; }
+                    if (currentStatus === "Ongoing") { statusColor = "#2196F3"; statusBg = "#2196F322"; }
 
                     return (
-                      <div
-                        key={reservation.id || index}
-                        className={`${AccountStyles["res-box"]} ${AccountStyles[currentStatus]}`}
-                      >
-                        <h4>{reservation.laboratory || "Unknown Lab"}</h4>
-                        <p>{reservation.rawDate}</p>
-                        <p>{reservation.reservationTime}</p>
-                        <p className={AccountStyles["seat-text"]}>
-                          Seat: {reservation.seatNumber}
-                        </p>
-                        <span className={AccountStyles["status-tag"]}>{currentStatus}</span>
-                      </div>
+                        <div key={reservation.id || index} className={UpcomingStyles["res-card"]}>
+                          <div className={UpcomingStyles["res-icon-section"]}>
+                            <span className={UpcomingStyles["res-calendar-icon"]} style={{ fontSize: "24px" }}>📅</span>
+                          </div>
+
+                          <div className={UpcomingStyles["res-info-group"]}>
+                            <div className={UpcomingStyles["res-meta-header"]}>
+                              [{reservation.laboratory || "Unknown Lab"}] - REQUESTED ON {reservation.requestDateTime || "N/A"}
+                            </div>
+
+                            <div className={UpcomingStyles["res-title"]}>
+                              {reservation.laboratory || "Unknown Lab"} - Seat {reservation.seatNumber}
+                            </div>
+
+                            <div style={{ marginTop: "6px" }}>
+                          <span style={{
+                            fontSize: "0.65rem",
+                            textTransform: "uppercase",
+                            fontWeight: "bold",
+                            padding: "3px 8px",
+                            borderRadius: "4px",
+                            color: statusColor,
+                            backgroundColor: statusBg
+                          }}>
+                            {currentStatus}
+                          </span>
+                            </div>
+                          </div>
+
+                          <div className={UpcomingStyles["res-time-section"]}>
+                            <div className={UpcomingStyles["res-date-text"]}>{reservation.rawDate}</div>
+                            <div className={UpcomingStyles["res-time-text"]}>{reservation.reservationTime}</div>
+                          </div>
+                        </div>
                     );
                   })
-                ) : (
-                  <p>No reservations found.</p>
-                )}
-              </div>
-
-              <button className={AccountStyles["nav-btn"]} onClick={() => scroll("right")}>
-                &#8250;
-              </button>
-            </div>
-          </div>
-
-          <div className={AccountStyles["sub-panel"]}>
-            <h3 className={AccountStyles["activity-title"]}>Recent Activity</h3>
-
-            <div className={AccountStyles["activity-feed"]}>
-              <div className={AccountStyles["activity-item"]}>
-                <img
-                  src={fullImageUrl}
-                  alt={`${user.firstName}'s profile`}
-                  className={AccountStyles["activity-avatar"]}
-                  onError={(e) => {
-                    e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-                  }}
-                />
-                <div className={AccountStyles["activity-text"]}>
-                  <span className={AccountStyles["user-link"]}>
-                    {user.firstName} {user.lastName}
-                  </span>
-                  <div className={AccountStyles["activity-date"]}>
-                    This section is still placeholder content.
-                  </div>
-                </div>
-              </div>
+              ) : (
+                  <p className={UpcomingStyles["empty-state"]}>No reservations found.</p>
+              )}
             </div>
           </div>
         </div>
