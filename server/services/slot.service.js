@@ -3,61 +3,63 @@ const Reservation = require("../model/reservation.model");
 const {
     validateThirtyMinuteSlot,
     parseTimeToMinutes,
+    getNormalizedEndMinutes,
     canCancelNoShow,
     getCurrentManilaDateTimeParts,
     getNoShowDeadline,
     getSlotEndDateTime,
 } = require("../utils/slotRules");
 
-exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
-    const { currentDate, currentMinutes } = getCurrentManilaDateTimeParts();
-    
-   
-    const query = { date: requestedDate };
-    if (!includeBlocked) query.isAvailable = true;
+function getCurrentTimeWithGrace() {
+    const { currentMinutes } = getCurrentManilaDateTimeParts();
+    const graceMinutes = Math.max(currentMinutes - 10, 0);
+    const hours = String(Math.floor(graceMinutes / 60)).padStart(2, "0");
+    const minutes = String(graceMinutes % 60).padStart(2, "0");
+    return `${hours}:${minutes}`;
+}
 
-    // Time Filter (Today + 10 min grace)
-    if (requestedDate === todayStr) {
-        const graceTime = new Date(now.getTime() - 10 * 60000);
-        const currentTime = `${String(graceTime.getHours()).padStart(2, '0')}:${String(graceTime.getMinutes()).padStart(2, '0')}`;
-        query.startTime = { $gte: currentTime };
+exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
+    const { currentDate } = getCurrentManilaDateTimeParts();
+
+    const query = { date: requestedDate };
+    if (!includeBlocked) {
+        query.isAvailable = true;
+    }
+
+    if (requestedDate === currentDate) {
+        query.startTime = { $gte: getCurrentTimeWithGrace() };
     }
 
     const slots = await Slot.find(query).populate("lab");
 
-    //   Get counts for all slots at once
-    return await Promise.all(slots.map(async (slot) => {
-        const activeReservations = await Reservation.find({
-            "slots.slot": slot._id,
-            status: "active"
-        });
+    return await Promise.all(
+        slots.map(async (slot) => {
+            const activeReservations = await Reservation.find({
+                "slots.slot": slot._id,
+                status: "active",
+            });
 
-        const occupiedSeats = activeReservations.flatMap(res => res.slots.map(s => s.seat));
-        const capacity = slot.lab?.seatCount || 0;
+            const occupiedSeats = activeReservations.flatMap((reservation) =>
+                reservation.slots
+                    .filter((slotEntry) => slotEntry.slot.toString() === slot._id.toString())
+                    .map((slotEntry) => slotEntry.seat)
+            );
 
-        return {
-            ...slot.toObject(),
-            occupiedCount: occupiedSeats.length,
-            capacity: capacity,
-            isFull: occupiedSeats.length >= capacity && capacity > 0
-        };
-    }));
-    if (requestedDate === currentDate) {
-        // 10 minute grace period
-        const graceMinutes = Math.max(currentMinutes - 10, 0);
-        const hours = String(Math.floor(graceMinutes / 60)).padStart(2, '0');
-        const minutes = String(graceMinutes % 60).padStart(2, '0');
-        const currentTimeWithGrace = `${hours}:${minutes}`;
+            const capacity = slot.lab?.seatCount || 0;
 
-        // Only find slots where startTime is greater than or equal to our grace time
-        query.startTime = { $gte: currentTimeWithGrace };
-    }
-
-    return await Slot.find(query).populate("lab");
+            return {
+                ...slot.toObject(),
+                occupiedCount: occupiedSeats.length,
+                capacity,
+                isFull: occupiedSeats.length >= capacity && capacity > 0,
+            };
+        })
+    );
 };
+
 exports.createSlot = async (slotData) => {
     const { lab, date, startTime, endTime } = slotData;
-    const { startMinutes, endMinutes } = validateThirtyMinuteSlot(startTime, endTime);
+    const { startMinutes, normalizedEndMinutes } = validateThirtyMinuteSlot(startTime, endTime);
     const { currentDate, currentMinutes } = getCurrentManilaDateTimeParts();
 
     if (date < currentDate) {
@@ -72,8 +74,11 @@ exports.createSlot = async (slotData) => {
 
     const hasOverlap = existingSlots.some((existingSlot) => {
         const existingStart = parseTimeToMinutes(existingSlot.startTime);
-        const existingEnd = parseTimeToMinutes(existingSlot.endTime);
-        return startMinutes < existingEnd && endMinutes > existingStart;
+        const existingEnd = getNormalizedEndMinutes(
+            existingStart,
+            parseTimeToMinutes(existingSlot.endTime)
+        );
+        return startMinutes < existingEnd && normalizedEndMinutes > existingStart;
     });
 
     if (hasOverlap) {
@@ -87,11 +92,8 @@ exports.createSlot = async (slotData) => {
 
 exports.getWeeklyCount = async (startDate, daysCount = 7) => {
     const results = [];
-    const { currentDate, currentMinutes } = getCurrentManilaDateTimeParts();
-
-    // Calculate grace time 
-    const graceMinutes = Math.max(currentMinutes - 10, 0);
-    const currentTimeWithGrace = `${String(Math.floor(graceMinutes / 60)).padStart(2, '0')}:${String(graceMinutes % 60).padStart(2, '0')}`;
+    const { currentDate } = getCurrentManilaDateTimeParts();
+    const currentTimeWithGrace = getCurrentTimeWithGrace();
 
     for (let i = 0; i < daysCount; i++) {
         const date = new Date(startDate);
@@ -103,23 +105,17 @@ exports.getWeeklyCount = async (startDate, daysCount = 7) => {
             isAvailable: true,
         };
 
-        // If the date is today, only count upcoming slots
         if (isoDate === currentDate) {
             query.startTime = { $gte: currentTimeWithGrace };
-        } 
-        // If the date is in the past, force count to 0 
-        else if (isoDate < currentDate) {
+        } else if (isoDate < currentDate) {
             results.push({ date: isoDate, count: 0 });
             continue;
         }
 
         const count = await Slot.countDocuments(query);
-
-        results.push({
-            date: isoDate,
-            count,
-        });
+        results.push({ date: isoDate, count });
     }
+
     return results;
 };
 
@@ -129,8 +125,8 @@ exports.getReservedSeatsForSlot = async (slotId) => {
         status: "active",
     });
 
-    return reservations.flatMap((res) =>
-        res.slots
+    return reservations.flatMap((reservation) =>
+        reservation.slots
             .filter((slotEntry) => slotEntry.slot.toString() === slotId.toString())
             .map((slotEntry) => slotEntry.seat)
     );
@@ -185,10 +181,9 @@ exports.getSlotReservationDetails = async (slotId) => {
 };
 
 exports.updateSlotAvailability = async (slotId, isAvailable) => {
-    const slot = await Slot.findByIdAndUpdate(
+    return await Slot.findByIdAndUpdate(
         slotId,
         { isAvailable },
         { new: true }
     ).populate("lab");
-    return slot;
 };

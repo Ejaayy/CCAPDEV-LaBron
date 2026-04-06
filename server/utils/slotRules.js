@@ -12,15 +12,20 @@ function parseTimeToMinutes(time) {
     return hour * 60 + minute;
 }
 
+function getNormalizedEndMinutes(startMinutes, endMinutes) {
+    return endMinutes <= startMinutes ? endMinutes + 24 * 60 : endMinutes;
+}
+
 function validateThirtyMinuteSlot(startTime, endTime) {
     const startMinutes = parseTimeToMinutes(startTime);
     const endMinutes = parseTimeToMinutes(endTime);
+    const normalizedEndMinutes = getNormalizedEndMinutes(startMinutes, endMinutes);
 
-    if (endMinutes - startMinutes !== SLOT_INTERVAL_MINUTES) {
+    if (normalizedEndMinutes - startMinutes !== SLOT_INTERVAL_MINUTES) {
         throw new Error("Slots must be exactly 30 minutes long.");
     }
 
-    return { startMinutes, endMinutes };
+    return { startMinutes, endMinutes, normalizedEndMinutes };
 }
 
 function buildSlotDateTime(slotDate, slotTime) {
@@ -54,7 +59,14 @@ function getNoShowDeadline(slot) {
 }
 
 function getSlotEndDateTime(slot) {
-    return buildSlotDateTime(slot.date, slot.endTime);
+    const slotStart = buildSlotDateTime(slot.date, slot.startTime);
+    const slotEnd = buildSlotDateTime(slot.date, slot.endTime);
+
+    if (slotEnd <= slotStart) {
+        return new Date(slotEnd.getTime() + 24 * 60 * 60 * 1000);
+    }
+
+    return slotEnd;
 }
 
 function canCancelNoShow(slot, now = new Date()) {
@@ -69,6 +81,7 @@ module.exports = {
     MANILA_TIME_ZONE,
     validateThirtyMinuteSlot,
     parseTimeToMinutes,
+    getNormalizedEndMinutes,
     buildSlotDateTime,
     getCurrentManilaDateTimeParts,
     getNoShowDeadline,
