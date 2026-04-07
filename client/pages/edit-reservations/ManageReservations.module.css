@@ -4,9 +4,12 @@
   height: calc(100vh - 70px);
   gap: 20px;
   padding: 20px;
+  overflow: hidden;
 }
 
 .schedule {
+  height: 100%;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 10px;
 }
