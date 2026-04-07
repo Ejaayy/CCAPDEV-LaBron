@@ -132,7 +132,7 @@ body {
 }
 
 .aboutSection {
-    padding: 80px 0;
+    padding: 40px 0;
     position: relative;
 }
 
@@ -335,4 +335,75 @@ body {
     .statNumber {
         font-size: 1.5rem;
     }
+}
+
+/* Ribbon Css */
+.aboutSection {
+  position: relative; 
+  padding-bottom: 90px; 
+}
+
+.carouselTitle{
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+}
+
+.carouselContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  padding: 30px 0;
+  background: linear-gradient(
+    90deg, 
+    rgba(15, 17, 26, 0) 0%, 
+    rgba(255, 255, 255, 0.03) 50%, 
+    rgba(15, 17, 26, 0) 100%
+  );
+  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+  z-index: 10;
+}
+
+.carouselTrack {
+  display: flex;
+  width: max-content;
+  animation: scroll 35s linear infinite;
+}
+
+.carouselItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 25px;
+  margin: 0 15px;
+  background: rgba(28, 36, 69, 0.95); 
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.pkgName {
+  font-weight: 700;
+  color: #fbfcff; 
+  font-size: 0.95rem;
+}
+
+.pkgVersion {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-family: monospace;
+  opacity: 0.8;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.carouselContainer:hover .carouselTrack {
+  animation-play-state: paused;
 }

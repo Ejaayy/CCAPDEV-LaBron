@@ -8,6 +8,39 @@ import Footer from '../components/layout/Footer/Footer';
 import useAuth from "@/hooks/useAuth";
 import { useRouter } from 'next/router';
 
+const allDependencies = [
+  // Backend & Core
+  { name: "express", version: "^4.22.1", type: "Backend Framework" },
+  { name: "next", version: "^16.1.6", type: "Frontend Framework" },
+  { name: "react", version: "19.2.3", type: "UI Library" },
+  { name: "react-dom", version: "19.2.3", type: "DOM Rendering" },
+  
+  // Database & Logic
+  { name: "mongoose", version: "^8.23.0", type: "MongoDB ODM" },
+  { name: "connect-mongo", version: "^6.0.0", type: "Session Store" },
+  { name: "express-session", version: "^1.19.0", type: "Session Management" },
+  { name: "dotenv", version: "^17.3.1", type: "Environment Config" },
+  { name: "cors", version: "^2.8.6", type: "Cross-Origin Resource Sharing" },
+
+  // Security & Utilities
+  { name: "bcrypt", version: "^6.0.0", type: "Password Hashing" },
+  { name: "bcryptjs", version: "^3.0.3", type: "Password Hashing (JS)" },
+  { name: "multer", version: "^2.1.1", type: "File Upload Handling" },
+  { name: "nodemailer", version: "^8.0.4", type: "Email Service" },
+
+  // Templating & UI
+  { name: "bootstrap", version: "^5.3.8", type: "CSS Framework" },
+  { name: "react-icons", version: "^5.5.0", type: "Icon Library" },
+  { name: "ejs", version: "^3.1.9", type: "Templating Engine" },
+  { name: "express-handlebars", version: "^8.0.3", type: "Templating Engine" },
+  { name: "hbs", version: "^4.2.0", type: "Templating Engine" },
+
+  // Development Tools
+  { name: "eslint", version: "^9", type: "Linting" },
+  { name: "eslint-config-next", version: "16.1.4", type: "Next.js Linting" },
+  { name: "babel-plugin-react-compiler", version: "1.0.0", type: "Compiler Optimization" }
+];
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -111,20 +144,28 @@ export default function Home() {
                 Our mission is to improve productivity and ensure fair access to laboratory resources for all students.
                 We believe technology should make campus life easier, not harder.
               </p>
-              <div className={styles.aboutStats}>
-                <div className={styles.statItem}>
-                  <span className={styles.statNumber}>500+</span>
-                  <span className={styles.statLabel}>Daily Users</span>
-                </div>
-                <div className={styles.statItem}>
-                  <span className={styles.statNumber}>20+</span>
-                  <span className={styles.statLabel}>Lab Rooms</span>
-                </div>
-                <div className={styles.statItem}>
-                  <span className={styles.statNumber}>99%</span>
-                  <span className={styles.statLabel}>Uptime</span>
+              <div className={styles.aboutSection}>
+               <h3 className={styles.carouselTitle}>Libraries used</h3>
+                <div className={styles.carouselContainer}>
+                <div className={styles.carouselTrack}>
+                  {/* First set of dependencies */}
+                  {allDependencies.map((pkg, index) => (
+                    <div key={`first-${index}`} className={styles.carouselItem}>
+                      <span className={styles.pkgName}>{pkg.name}</span>
+                      <span className={styles.pkgVersion}>{pkg.version}</span>
+                    </div>
+                  ))}
+                  {/* Duplicate set for infinite loop */}
+                  {allDependencies.map((pkg, index) => (
+                    <div key={`second-${index}`} className={styles.carouselItem}>
+                      <span className={styles.pkgName}>{pkg.name}</span>
+                      <span className={styles.pkgVersion}>{pkg.version}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
+              </div>
+              
             </div>
           </div>
           <div className="col-lg-6">
