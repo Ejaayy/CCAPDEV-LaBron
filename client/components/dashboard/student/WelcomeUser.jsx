@@ -48,7 +48,7 @@ const WelcomeUser = ({upcomingCount = 0, availableRooms = 0, availableSlots = 0}
             <div className={styles.analyticsContainer}>
                 <div className={styles.messageContainer}>
                     <span className={styles.big}>
-                        Heya {user ? `${user.lastName}` : "User"},
+                        Heya {user ? `${user.firstName}` : "User"},
                     </span>
                     <span className={styles.bigger}>Welcome Back!</span>
                 </div>

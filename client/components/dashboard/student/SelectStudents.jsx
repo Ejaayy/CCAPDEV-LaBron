@@ -39,12 +39,11 @@ const SelectStudent = ({ currentUserId, onSelectStudent, showAddButton = true })
     return fullName.includes(searchTerm.toLowerCase());
   });
 
-  return (
-    <div className={styles.container}>
+return (
+    <div className={`${styles.container} ${isHomePage ? styles.containerLight : ""}`}>
       <div className={styles.header}>
         <h2 className={styles.title}>Select Student</h2>
         <div className={styles.searchBar}>
-          <span role="img" aria-hidden="true">Search</span>
           <input
             type="text"
             placeholder="Search students..."
@@ -88,18 +87,9 @@ const SelectStudent = ({ currentUserId, onSelectStudent, showAddButton = true })
                   {showAddButton && !isHomePage && (
                     <button
                       onClick={() => onSelectStudent(student)}
-                      style={{
-                        marginTop: "10px",
-                        padding: "8px 16px",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        marginBottom: "10px",
-                      }}
+                      className={styles.addButton}
                     >
-                      Add to Slot
+                      + Add to Slot
                     </button>
                   )}
 
