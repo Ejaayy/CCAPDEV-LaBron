@@ -10,16 +10,14 @@ const {
     getSlotEndDateTime,
 } = require("../utils/slotRules");
 
-function getCurrentTimeWithGrace() {
-    const { currentMinutes } = getCurrentManilaDateTimeParts();
-    const graceMinutes = Math.max(currentMinutes - 10, 0);
-    const hours = String(Math.floor(graceMinutes / 60)).padStart(2, "0");
-    const minutes = String(graceMinutes % 60).padStart(2, "0");
+function getCurrentTimeString() {
+    const { hours, minutes } = getCurrentManilaDateTimeParts();
     return `${hours}:${minutes}`;
 }
 
 exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
     const { currentDate } = getCurrentManilaDateTimeParts();
+    const currentTimeString = getCurrentTimeString();
 
     const query = { date: requestedDate };
     if (!includeBlocked) {
@@ -27,7 +25,7 @@ exports.getSlotsByDate = async (requestedDate, includeBlocked = false) => {
     }
 
     if (requestedDate === currentDate) {
-        query.startTime = { $gte: getCurrentTimeWithGrace() };
+        query.startTime = { $gte: currentTimeString };
     }
 
     const slots = await Slot.find(query).populate("lab");
@@ -93,7 +91,7 @@ exports.createSlot = async (slotData) => {
 exports.getWeeklyCount = async (startDate, daysCount = 7) => {
     const results = [];
     const { currentDate } = getCurrentManilaDateTimeParts();
-    const currentTimeWithGrace = getCurrentTimeWithGrace();
+    const currentTimeString = getCurrentTimeString();
 
     for (let i = 0; i < daysCount; i++) {
         const date = new Date(startDate);
@@ -106,7 +104,7 @@ exports.getWeeklyCount = async (startDate, daysCount = 7) => {
         };
 
         if (isoDate === currentDate) {
-            query.startTime = { $gte: currentTimeWithGrace };
+            query.startTime = { $gte: currentTimeString };
         } else if (isoDate < currentDate) {
             results.push({ date: isoDate, count: 0 });
             continue;
