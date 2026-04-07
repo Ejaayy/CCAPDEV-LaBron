@@ -9,7 +9,7 @@ import { useMyReservations } from "@/hooks/useReservations";
 
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { updateProfile, deleteAccount } from "@/lib/users";
+import { updateProfile, deleteAccount, uploadProfilePicture, deleteProfilePicture } from "@/lib/users";
 import UpcomingStyles from "@/styles/Upcoming.module.css";
 
 function getRealStatus(reservation) {
@@ -54,6 +54,38 @@ export default function Account() {
     return [...reservations];
   }, [reservations]);
 
+  const [isPicModalOpen, setIsPicModalOpen] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Ensure it's a PNG
+    if (file.type !== "image/png") {
+      alert("Please upload a PNG image.");
+      return;
+    }
+
+    try {
+      await uploadProfilePicture(file);
+      setIsPicModalOpen(false);
+      window.location.reload(); // refresh to see the new image
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleDeletePic = async () => {
+    try {
+      await deleteProfilePicture();
+      setIsPicModalOpen(false);
+      window.location.reload();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   function scroll(direction) {
     const current = scrollRef.current;
     if (!current) return;
@@ -82,6 +114,41 @@ export default function Account() {
 
   return (
     <AuthWrapper>
+      {isPicModalOpen && (
+          <div className={AccountStyles.modalOverlay}>
+            <div className={AccountStyles.picModal}>
+              <button className={AccountStyles.closeBtn} onClick={() => setIsPicModalOpen(false)}>✖</button>
+              <h3 style={{ margin: 0 }}>Update Profile Picture</h3>
+
+              <div className={AccountStyles.picModalContent}>
+                <div className={AccountStyles.picLeft}>
+                  <img
+                      src={fullImageUrl}
+                      alt="Current profile"
+                      onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; }}
+                  />
+                </div>
+                <div className={AccountStyles.picRight}>
+                  {/* Hidden file input */}
+                  <input
+                      type="file"
+                      accept="image/png"
+                      hidden
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                  />
+
+                  <button className={AccountStyles.changeBtn} onClick={() => fileInputRef.current.click()}>
+                    Change Profile Picture
+                  </button>
+                  <button className={AccountStyles.deleteBtn} onClick={handleDeletePic}>
+                    Delete Profile Picture
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+      )}
       <div className={AccountStyles["page-container"]}>
         <HomeNavbar />
 
@@ -95,11 +162,16 @@ export default function Account() {
           <div className={AccountStyles["sub-panel"]}>
             <div className={AccountStyles["profile-upper"]}>
               <div className={AccountStyles["avatar-container"]}>
-                <div className={AccountStyles["default-avatar"]}>
+                <div
+                    className={AccountStyles["default-avatar"]}
+                    onClick={() => setIsPicModalOpen(true)}
+                    style={{ cursor: "pointer", transition: "0.2s" }}
+                    title="Click to change profile picture"
+                >
                   <img
-                    src={fullImageUrl}
-                    alt={`${user.firstName}'s profile`}
-                    className={AccountStyles["profile-img"]}
+                      src={fullImageUrl}
+                      alt={`${user.firstName}'s profile`}
+                      className={AccountStyles["profile-img"]}
                     onError={(e) => {
                       e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
                     }}
