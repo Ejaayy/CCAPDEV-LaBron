@@ -1,4 +1,4 @@
-# LabKoTo - Computer Laboratory Reservation System 💻
+# LabKoTo - Computer Laboratory Reservation System
 
 **LabKoTo** is a full-stack web application designed to streamline the reservation and management of computer laboratory slots. Built for both students and laboratory technicians, it provides a seamless interface for booking seats, managing availability, and tracking lab usage.
 
@@ -25,7 +25,7 @@
 
 ---
 
-## Test Credentials for Grading
+## Test Credentials
 To make testing easier, the database has been seeded with the required Phase 3 sample data. You can log in using the following accounts to explore both roles:
 
 **Lab Technician Account**
@@ -53,3 +53,10 @@ Ensure you have the following installed on your machine:
 ```bash
 git clone [https://github.com/](https://github.com/)[your-username]/ccapdev-labkoto.git
 cd ccapdev-labkoto
+```
+
+### 3. Install package dependencies
+Run `npm install` on the client, server, and main folders.
+
+### 4. Run
+Run `npm run dev` on the main folder.
