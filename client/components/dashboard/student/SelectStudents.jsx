@@ -1,7 +1,6 @@
 import styles from "@/styles/SelectStudents.module.css";
 
 //Next.js components/hooks for navigation
-import Link from "next/link";
 import { useRouter } from "next/router";
 
 // React hook for managing local state
@@ -30,7 +29,6 @@ const SelectStudent = ({ currentUserId, onSelectStudent, showAddButton = true })
   const [searchTerm, setSearchTerm] = useState("");
   const { students, loading } = useStudents();
 
-  
   //Filter students based on search input
   const filteredStudents = students.filter((student) => {
     if (student._id === currentUserId) return false;
@@ -39,77 +37,82 @@ const SelectStudent = ({ currentUserId, onSelectStudent, showAddButton = true })
     return fullName.includes(searchTerm.toLowerCase());
   });
 
-return (
-    <div className={`${styles.container} ${isHomePage ? styles.containerLight : ""}`}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>Select Student</h2>
-        <div className={styles.searchBar}>
-          <input
-            type="text"
-            placeholder="Search students..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
-        </div>
-      </div>
-
-      {loading ? (
-        <p className={styles.loadingStudent}>Loading students...</p>
-      ) : (
-        <div className={styles.carouselWrapper}>
-          <button className={styles.arrowBtn}>&#10094;</button>
-
-          <div className={styles.studentList}>
-            {filteredStudents.length > 0 ? (
-              filteredStudents.map((student) => (
-                <div key={student._id} className={styles.studentCard}>
-                  <div className={styles.avatarPlaceholder}>
-                    <img
-                      src={
-                        student.profilePicturePath
-                          ? `${API_BASE_URL.replace("/api", "")}${student.profilePicturePath}`
-                          : `${API_BASE_URL.replace("/api", "")}/uploads/profiles/default.png`
-                      }
-                      alt={`${student.firstName}'s avatar`}
-                      className={styles.avatarImage}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-                      }}
-                    />
-                  </div>
-
-                  <p className={styles.studentName}>
-                    {student.firstName} {student.lastName}
-                  </p>
-
-                  {showAddButton && !isHomePage && (
-                    <button
-                      onClick={() => onSelectStudent(student)}
-                      className={styles.addButton}
-                    >
-                      + Add to Slot
-                    </button>
-                  )}
-
-                  <Link
-                    href={`/viewProfile?userId=${student._id}`}
-                    className={styles.viewProfileLink}
-                  >
-                    View Profile
-                  </Link>
-                </div>
-              ))
-            ) : (
-              <p className={styles.noResults}>No other students found.</p>
-            )}
+  return (
+      <div className={`${styles.container} ${isHomePage ? styles.containerLight : ""}`}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>Select Student</h2>
+          <div className={styles.searchBar}>
+            <input
+                type="text"
+                placeholder="Search students..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput}
+            />
           </div>
-
-          <button className={styles.arrowBtn}>&#10095;</button>
         </div>
-      )}
-    </div>
+
+        {loading ? (
+            <p className={styles.loadingStudent}>Loading students...</p>
+        ) : (
+            <div className={styles.carouselWrapper}>
+              <button className={styles.arrowBtn}>&#10094;</button>
+
+              <div className={styles.studentList}>
+                {filteredStudents.length > 0 ? (
+                    filteredStudents.map((student) => (
+                        <div
+                            key={student._id}
+                            className={styles.studentCard}
+                            onClick={() => router.push(`/viewProfile?userId=${student._id}`)}
+                            style={{ cursor: "pointer" }}
+                        >
+                          <div className={styles.avatarPlaceholder}>
+                            <img
+                                src={
+                                  student.profilePicturePath
+                                      ? `${API_BASE_URL.replace("/api", "")}${student.profilePicturePath}`
+                                      : `${API_BASE_URL.replace("/api", "")}/uploads/profiles/default.png`
+                                }
+                                alt={`${student.firstName}'s avatar`}
+                                className={styles.avatarImage}
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                                }}
+                            />
+                          </div>
+
+                          <p className={styles.studentName}>
+                            {student.firstName} {student.lastName}
+                          </p>
+
+                          {showAddButton && !isHomePage && (
+                              <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSelectStudent(student);
+                                  }}
+                                  className={styles.addButton}
+                              >
+                                + Add to Slot
+                              </button>
+                          )}
+
+                          <span className={styles.viewProfileLink}>
+                    View Profile
+                  </span>
+                        </div>
+                    ))
+                ) : (
+                    <p className={styles.noResults}>No other students found.</p>
+                )}
+              </div>
+
+              <button className={styles.arrowBtn}>&#10095;</button>
+            </div>
+        )}
+      </div>
   );
 };
 
