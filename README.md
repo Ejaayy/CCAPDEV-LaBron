@@ -1,4 +1,4 @@
-# LabKoTo - Computer Laboratory Reservation System 
+# LabKoTo - Computer Laboratory Reservation System
 
 **LabKoTo** is a full-stack web application designed to streamline the reservation and management of computer laboratory slots. Built for both students and laboratory technicians, it provides a seamless interface for booking seats, managing availability, and tracking lab usage.
 
