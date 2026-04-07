@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./AddRoomModal.module.css";
 
 const MAX_SEAT_COUNT = 45;
@@ -50,12 +50,31 @@ function validateRoomForm({ name, location, seatCount }) {
   return null;
 }
 
-export default function AddRoomModal({ isOpen, onClose, onAddRoom }) {
+export default function AddRoomModal({
+  isOpen,
+  onClose,
+  onAddRoom,
+  onEditRoom,
+  initialValues,
+  mode = "add",
+}) {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [seatCount, setSeatCount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (mode === "edit" && initialValues) {
+      setName(initialValues.name || "");
+      setLocation(initialValues.location || "");
+      setSeatCount(
+        initialValues.seatCount != null ? String(initialValues.seatCount) : ""
+      );
+      setError("");
+    }
+  }, [isOpen, mode, initialValues]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,11 +93,17 @@ export default function AddRoomModal({ isOpen, onClose, onAddRoom }) {
     try {
       setIsSubmitting(true);
       setError("");
-      await onAddRoom({
+      const payload = {
         name: normalizedName,
         location: normalizedLocation,
         seatCount: count,
-      });
+      };
+
+      if (mode === "edit") {
+        await onEditRoom(payload);
+      } else {
+        await onAddRoom(payload);
+      }
       setName("");
       setLocation("");
       setSeatCount("");
@@ -105,7 +130,7 @@ export default function AddRoomModal({ isOpen, onClose, onAddRoom }) {
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h3>Add New Room</h3>
+          <h3>{mode === "edit" ? "Edit Room" : "Add New Room"}</h3>
           <button className={styles.closeBtn} onClick={handleClose}>
             &times;
           </button>
@@ -162,7 +187,13 @@ export default function AddRoomModal({ isOpen, onClose, onAddRoom }) {
               Cancel
             </button>
             <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Room"}
+              {mode === "edit"
+                ? isSubmitting
+                  ? "Saving..."
+                  : "Save Changes"
+                : isSubmitting
+                  ? "Adding..."
+                  : "Add Room"}
             </button>
           </div>
         </form>

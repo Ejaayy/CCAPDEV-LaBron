@@ -10,3 +10,16 @@ export function createLab(payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export function updateLab(id, payload) {
+  return apiJson(`/labs/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteLab(id) {
+  return apiJson(`/labs/${id}`, {
+    method: "DELETE",
+  });
+}

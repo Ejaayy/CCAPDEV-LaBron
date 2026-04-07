@@ -24,6 +24,39 @@
   margin-bottom: 4px;
 }
 
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.editBtn,
+.deleteBtn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: transparent;
+  color: #94A3B8;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.editBtn:hover {
+  border-color: #3B82F6;
+  color: white;
+}
+
+.deleteBtn:hover {
+  border-color: #F87171;
+  color: white;
+}
+
 .capacity {
   font-size: 13px;
   color: #94A3B8;

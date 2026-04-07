@@ -1,4 +1,5 @@
 const Lab = require("../model/Lab");
+const Slot = require("../model/slot.model");
 
 const MAX_SEAT_COUNT = 45;
 const LOCATION_PATTERN = /^[A-Za-z][A-Za-z\s'-]* Building \d+(st|nd|rd|th) Floor$/;
@@ -100,6 +101,62 @@ exports.createLab = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({ message: "A lab with this name already exists" });
     }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateLab = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, location, seatCount } = req.body;
+
+    const validationError = validateLabPayload({ name, location, seatCount });
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
+    }
+
+    const normalizedName = normalizeText(name);
+    const normalizedLocation = normalizeText(location);
+    const seatCountNum = Number(seatCount);
+    const seatsArray = generateSeats(seatCountNum, 3);
+
+    const updated = await Lab.findByIdAndUpdate(
+      id,
+      {
+        name: normalizedName,
+        location: normalizedLocation,
+        seatCount: seatCountNum,
+        seats: seatsArray,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Lab not found" });
+    }
+
+    res.status(200).json(updated);
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "A lab with this name already exists" });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteLab = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await Lab.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Lab not found" });
+    }
+
+    await Slot.deleteMany({ lab: id });
+
+    res.status(200).json({ message: "Lab deleted" });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };

@@ -22,7 +22,7 @@ import {
   updateReservationSeats,
 } from "@/lib/reservations";
 import { createSlot, getSlotOccupancy } from "@/lib/slots";
-import { createLab } from "@/lib/labs";
+import { createLab, deleteLab, updateLab } from "@/lib/labs";
 
 export default function ManageReservations() {
   const router = useRouter();
@@ -42,6 +42,7 @@ export default function ManageReservations() {
   const [editingReservation, setEditingReservation] = useState(null);
   const [isStudentSelectorOpen, setIsStudentSelectorOpen] = useState(false);
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
+  const [editingLab, setEditingLab] = useState(null);
 
   const [pendingStudent, setPendingStudent] = useState(null);
   const [pendingSeats, setPendingSeats] = useState([]);
@@ -151,6 +152,46 @@ export default function ManageReservations() {
     } catch (err) {
       console.error("Failed to create room:", err);
       throw err;
+    }
+  };
+
+  const handleEditRoomOpen = (lab) => {
+    setEditingLab(lab);
+    setIsAddRoomModalOpen(true);
+  };
+
+  const handleEditRoom = async (payload) => {
+    if (!editingLab?._id) return;
+    const updatedLab = await updateLab(editingLab._id, payload);
+
+    setLabs((prev) =>
+      prev
+        .map((lab) => (lab._id === updatedLab._id ? updatedLab : lab))
+        .sort((a, b) => {
+          const aLabel = `${a.location || ""} ${a.name || ""}`.trim();
+          const bLabel = `${b.location || ""} ${b.name || ""}`.trim();
+          return aLabel.localeCompare(bLabel);
+        })
+    );
+
+    setSelectedLab((prev) => (prev?._id === updatedLab._id ? updatedLab : prev));
+    setEditingLab(null);
+  };
+
+  const handleDeleteRoom = async (lab) => {
+    if (!lab?._id) return;
+
+    const displayLabel = lab.location ? `${lab.location} - ${lab.name}` : lab.name;
+    const confirmed = window.confirm(`Delete room "${displayLabel}"? This will also delete its slots.`);
+    if (!confirmed) return;
+
+    await deleteLab(lab._id);
+
+    setLabs((prev) => prev.filter((item) => item._id !== lab._id));
+
+    if (selectedLab?._id === lab._id) {
+      setSelectedLab(null);
+      setSelectedSlot(null);
     }
   };
 
@@ -366,6 +407,8 @@ export default function ManageReservations() {
                 lab={lab}
                 isSelected={selectedLab?._id === lab._id}
                 onClick={() => handleLabClick(lab)}
+                onEdit={handleEditRoomOpen}
+                onDelete={handleDeleteRoom}
               />
             ))}
           </div>
@@ -376,8 +419,14 @@ export default function ManageReservations() {
 
       <AddRoomModal
         isOpen={isAddRoomModalOpen}
-        onClose={() => setIsAddRoomModalOpen(false)}
+        onClose={() => {
+          setIsAddRoomModalOpen(false);
+          setEditingLab(null);
+        }}
         onAddRoom={handleAddRoom}
+        onEditRoom={handleEditRoom}
+        initialValues={editingLab}
+        mode={editingLab ? "edit" : "add"}
       />
 
       {isStudentSelectorOpen && (
