@@ -1,6 +1,8 @@
 const userService = require('../services/user.service');
 const User = require('../model/User');
 const Reservation = require('../model/reservation.model');
+const fs = require('fs').promises;
+const path = require('path');
 
 const fetchStudents = async (req, res) => {
     try {
@@ -74,9 +76,66 @@ const deleteAccount = async (req, res) => {
     }
 };
 
+const uploadProfilePicture = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        if (!userId) return res.status(401).json({ message: "Not logged in" });
+        if (!req.file) return res.status(400).json({ message: "No image file provided." });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // make filename to be the user's ID number + .png
+        const fileName = `${user.idNumber}.png`;
+        const uploadPath = path.join(__dirname, '../public/uploads/profiles', fileName);
+
+        // save the file to the public folder
+        await fs.writeFile(uploadPath, req.file.buffer);
+
+        // update the database record
+        const dbPath = `/uploads/profiles/${fileName}`;
+        user.profilePicturePath = dbPath;
+        await user.save();
+
+        res.status(200).json({ message: "Profile picture updated!", profilePicturePath: dbPath });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const deleteProfilePicture = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        if (!userId) return res.status(401).json({ message: "Not logged in" });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // If they have a custom picture, delete the physical file
+        if (user.profilePicturePath && user.profilePicturePath.includes(user.idNumber)) {
+            const oldPath = path.join(__dirname, '../public', user.profilePicturePath);
+            try {
+                await fs.unlink(oldPath);
+            } catch (err) {
+                console.log("File might already be deleted.");
+            }
+        }
+
+        // reset the database field to null (so it falls back to default.png)
+        user.profilePicturePath = null;
+        await user.save();
+
+        res.status(200).json({ message: "Profile picture removed." });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     fetchStudents,
     getUserById,
     updateProfile,
     deleteAccount,
+    deleteProfilePicture,
+    uploadProfilePicture,
 };
