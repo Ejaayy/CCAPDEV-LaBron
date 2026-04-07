@@ -1,30 +1,11 @@
 import styles from "./WelcomeTech.module.css";
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 
-const WelcomeUser = ({upcomingCount = 0, availableRooms = 0, availableSlots = 0}) => {
-    const [user, setUser] = useState(null);
+import useAuth from "@/hooks/useAuth";
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                const response = await fetch('http://localhost:3001/api/auth/me', {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include'
-                });
+const WelcomeTech = ({upcomingCount = 0, availableRooms = 0, availableSlots = 0}) => {
 
-                if (response.ok) {
-                    const data = await response.json();
-                    setUser(data);
-                }
-            } catch (error) {
-                console.error("Error fetching user data:", error);
-            }
-        };
-
-        fetchUserData();
-    }, []);
+    const { user } = useAuth();
 
     return(
         <div className={styles.welcomeWrapper}>
@@ -46,4 +27,4 @@ const WelcomeUser = ({upcomingCount = 0, availableRooms = 0, availableSlots = 0}
     );
 };
 
-export default WelcomeUser;
+export default WelcomeTech;
