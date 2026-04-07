@@ -1,66 +1,55 @@
-# CCAPDEV-LabKoTo: Lab Reservation System
+# LabKoTo - Computer Laboratory Reservation System 💻
 
-The following describes the features of a computer laboratory slot (seat) reservation web application. Groups must include at least three computer labs in the system. The minimum features required to be implemented for this project are as follows:
+**LabKoTo** is a full-stack web application designed to streamline the reservation and management of computer laboratory slots. Built for both students and laboratory technicians, it provides a seamless interface for booking seats, managing availability, and tracking lab usage.
 
-## View Slot Availability
-  o A user may choose a computer lab and see the current available seats of the chosen lab. 
-    The user may opt to see the availability of the lab at other times for the next 7 days. 
-    A user must be a student user to reserve a seat.
-  o Note: Users may see who reserved a seat, as long as the reservee did not make the reservation anonymously. 
-    Clicking on a user’s name should link to that user’s profile. Availability must also update periodically so that the user does not need to refresh every time.
+**Live Deployment:** [https://ccapdev-labkoto.vercel.app](https://ccapdev-labkoto.vercel.app)
 
-## Register
-  o A visitor must register if they want to reserve a lab slot. 
-    The visitor must enter their DLSU email and a password. 
-    There should be 2 kinds of accounts: the student who can reserve lab slots, and the lab technician that can block a time slot for walk-in students.
+---
 
-## Login
-  o After registering properly, a visitor may log in. Upon logging in, the option to reserve a slot will be open. 
-    The user is given the option to be “remembered” by the website. When the user chooses this option, every login and visit to the website will extend their “remember” period by 3 weeks.
+## Key Features
+* **Role-Based Access Control:** Distinct dashboards and permissions for Students and Lab Technicians.
+* **Real-Time Availability:** View which labs and specific seats are currently available, booked, or under maintenance.
+* **Reservation Management:** Students can reserve, edit, or cancel their bookings.
+* **Technician Controls:** Lab Technicians can add new buildings, manage lab capacities, modify seat statuses, and oversee all reservations.
+* **Profile Management:** Users can update their profiles, including uploading custom profile pictures.
+* **Secure Authentication:** Password hashing via bcrypt, secure session cookies, and forgot-password functionality.
 
-## Logout
-  o The user may log out from their account. 
-    This should cut short the “remember” period if it exists and clear any session-related data.
+---
 
-## Reserve
-  o Students can reserve slots that have not yet been taken. 
-    Lab slots are in intervals of 30 minutes. 
-    The student also has the option whether to reserve anonymously or not. 
-    The student can reserve more than one slot, and all the lab slots will be made under one reservation. 
-    A student may not reserve a previously reserved slot.
+## Tech Stack (MVC Architecture)
+* **Frontend (View):** Next.js (React), CSS Modules
+* **Backend (Controller):** Node.js, Express.js
+* **Database (Model):** MongoDB Atlas, Mongoose ODM
+* **Authentication:** Express-Session, Connect-Mongo, Bcryptjs
+* **Deployment:** Vercel (Frontend), Render (Backend)
 
-## Reserve for a student
-  o Lab technicians can make a reservation for walk-in students.
+---
 
-## Remove reservation
-  o Lab technicians have the ability to remove reservations of students who do not show up within 10 minutes of the reservation. 
-    This facility is only available 10 minutes of the actual reservation time. This will cancel the whole reservation.
+## Test Credentials for Grading
+To make testing easier, the database has been seeded with the required Phase 3 sample data. You can log in using the following accounts to explore both roles:
 
-## Edit reservation
-  o A student can edit reservations they previously made.
-  o Lab technicians are able to edit any reservations.
+**Lab Technician Account**
+* **Email:** `tech_test@dlsu.edu.ph`
+* **Password:** `password123`
 
-## See reservations
-  o A user may check their reservations. 
-    They can see details such as the seat number, the laboratory, the date and time of request, and the date and time of reservation.
+**Student Account**
+* **Email:** `student_test@dlsu.edu.ph`
+* **Password:** `password123`
 
-## View / Edit User profile
-  o Registered users may edit their own profile, which includes a profile picture and description. 
-    Additionally, the profile should also list the student’s current reservations.
-  o Users may also view another user’s public profile, but they are not able to edit it.
+*(Note: You can also register a new account from the login page. To register a new technician, navigate to the hidden route `/registration/labtechnician/1658`)*
 
-## Delete User Account
-  o Students have the option to delete their own account, ultimately deleting their account and cancelling any pending reservations they may have.
+---
 
-## Search for users / free slots
-  o Users can view all the available slots given a provided date and time, and the lab.
+## How to Run Locally
 
-## Installation of Backend Dependencies
-  o In terminal run this code: npm install express mongodb dotenv bcrypt hbs
+If you wish to run this project on your local machine, follow these steps:
 
-## Connecting to the Databse
-  o Open MongoDB, add connection and inser this: "mongodb://127.0.0.1:27017/". Name the database as "ccapdev_labkoto"
+### 1. Prerequisites
+Ensure you have the following installed on your machine:
+* [Node.js](https://nodejs.org/) (v18 or higher recommended)
+* [MongoDB](https://www.mongodb.com/try/download/community) (Local instance, or a MongoDB Atlas cluster URI)
 
-## General
-  o Good user experience. Visitors can easily navigate without help, all information is easy to access. 
-    Good visual design. Design suits the theme of the application, and is cohesive and consistent across the whole application.
+### 2. Clone the Repository
+```bash
+git clone [https://github.com/](https://github.com/)[your-username]/ccapdev-labkoto.git
+cd ccapdev-labkoto
