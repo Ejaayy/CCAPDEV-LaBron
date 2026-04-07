@@ -11,6 +11,7 @@ export default function RoomSlotsPanel({
   date,
   onSlotClick,
   onAddSlot,
+  onDeleteSlot,
 }) {
   const [occupancies, setOccupancies] = useState({});
 
@@ -73,14 +74,26 @@ export default function RoomSlotsPanel({
             const timeStr = `${slot.startTime || ""} - ${slot.endTime || ""}`.trim();
 
             return (
-              <Slot
-                key={slot._id}
-                time={timeStr}
-                status={status}
-                isBlocked={!slot.isAvailable}
-                capacity={capacityStr}
-                onClick={() => onSlotClick(slot)}
-              />
+              <div key={slot._id} className={styles.slotItem}>
+                <Slot
+                  time={timeStr}
+                  status={status}
+                  isBlocked={!slot.isAvailable}
+                  capacity={capacityStr}
+                  onClick={() => onSlotClick(slot)}
+                />
+                <button
+                  type="button"
+                  className={styles.deleteSlotBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteSlot?.(slot);
+                  }}
+                  title="Delete time slot"
+                >
+                  Delete
+                </button>
+              </div>
             );
           })
         )}

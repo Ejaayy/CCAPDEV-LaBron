@@ -187,3 +187,18 @@ exports.updateSlotAvailability = async (slotId, isAvailable) => {
         { new: true }
     ).populate("lab");
 };
+
+exports.deleteSlotAndReservations = async (slotId) => {
+    const slot = await Slot.findById(slotId);
+    if (!slot) {
+        throw new Error("Slot not found");
+    }
+
+    // Delete all reservations that include this slot.
+    // (Current schema allows multiple slot entries per reservation; for now we remove the whole reservation.)
+    await Reservation.deleteMany({ "slots.slot": slotId });
+
+    await Slot.findByIdAndDelete(slotId);
+
+    return { message: "Slot and reservations deleted" };
+};

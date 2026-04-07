@@ -38,3 +38,9 @@ export function updateSlot(slotId, payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export function deleteSlot(slotId) {
+  return apiJson(`/slots/${slotId}`, {
+    method: "DELETE",
+  });
+}

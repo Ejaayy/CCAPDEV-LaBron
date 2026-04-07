@@ -25,6 +25,27 @@
   gap: 8px;
 }
 
+.slotItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.deleteSlotBtn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: transparent;
+  color: #94A3B8;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.deleteSlotBtn:hover {
+  border-color: #F87171;
+  color: white;
+}
+
 .emptyState {
   grid-column: 1 / -1;
   color: #94A3B8;

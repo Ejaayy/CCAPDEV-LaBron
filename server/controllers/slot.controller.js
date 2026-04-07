@@ -79,3 +79,16 @@ exports.updateSlot = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.deleteSlot = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await slotService.deleteSlotAndReservations(id);
+        res.status(200).json(result);
+    } catch (error) {
+        if (error.message === "Slot not found") {
+            return res.status(404).json({ message: "Slot not found" });
+        }
+        res.status(500).json({ message: error.message });
+    }
+};

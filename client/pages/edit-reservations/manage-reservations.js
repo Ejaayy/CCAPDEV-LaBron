@@ -21,7 +21,7 @@ import {
   updateReservationStatus,
   updateReservationSeats,
 } from "@/lib/reservations";
-import { createSlot, getSlotOccupancy } from "@/lib/slots";
+import { createSlot, deleteSlot, getSlotOccupancy } from "@/lib/slots";
 import { createLab, deleteLab, updateLab } from "@/lib/labs";
 
 export default function ManageReservations() {
@@ -133,6 +133,29 @@ export default function ManageReservations() {
       }
     },
     [selectedLab, date, setSlots]
+  );
+
+  const handleDeleteSlot = useCallback(
+    async (slot) => {
+      if (!slot?._id) return;
+      const timeLabel = `${slot.startTime || ""} - ${slot.endTime || ""}`.trim();
+      const confirmed = window.confirm(
+        `Delete time slot "${timeLabel}"? This will also delete the reservations inside it.`
+      );
+      if (!confirmed) return;
+
+      try {
+        await deleteSlot(slot._id);
+        setSlots((prev) => prev.filter((s) => s._id !== slot._id));
+        if (selectedSlot?.slot?._id === slot._id) {
+          setSelectedSlot(null);
+        }
+      } catch (err) {
+        console.error("Failed to delete slot:", err);
+        alert(err.message || "Failed to delete slot.");
+      }
+    },
+    [setSlots, selectedSlot]
   );
 
   const handleAddRoom = async (roomData) => {
@@ -337,6 +360,7 @@ export default function ManageReservations() {
           date={date}
           onSlotClick={handleSlotClick}
           onAddSlot={handleAddSlot}
+          onDeleteSlot={handleDeleteSlot}
         />
       );
     }

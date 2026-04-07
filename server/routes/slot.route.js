@@ -8,5 +8,6 @@ router.get("/", slotController.getAvailableSlots);
 router.post("/", slotController.createSlot);
 router.get("/:id/occupancy", slotController.getSlotOccupancy);
 router.patch("/:id", slotController.updateSlot);
+router.delete("/:id", slotController.deleteSlot);
 
 module.exports = router;
