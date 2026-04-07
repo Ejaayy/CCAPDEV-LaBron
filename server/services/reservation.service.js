@@ -446,3 +446,28 @@ exports.addSeats = async (reservationId, newSeatArray) => {
     
     return await reservation.save();
 };
+
+exports.syncAllReservationStatuses = async () => {
+    // find all reservations that the database thinks are still active/ongoing
+    const reservations = await Reservation.find({
+        status: { $in: ["active", "ongoing"] }
+    }).populate("slots.slot");
+
+    // sweep through them and update the database if time has passed
+    await Promise.all(reservations.map(async (res) => {
+        const slotInfo = res.slots[0]?.slot;
+        if (!slotInfo) return;
+
+        const newStatus = resolveReservationStatus(
+            res.status,
+            slotInfo.date,
+            slotInfo.startTime,
+            slotInfo.endTime
+        );
+
+        // if the calculated time doesn't match the database, update the database
+        if (newStatus !== res.status) {
+            await Reservation.updateOne({ _id: res._id }, { status: newStatus });
+        }
+    }));
+};

@@ -82,6 +82,7 @@ exports.getMyReservations = async (req, res) => {
 
 exports.getUserPublicReservations = async (req, res) => {
     try {
+        await reservationService.syncAllReservationStatuses();
         const targetUserId = req.params.id;
 
         // reservations with privacy
@@ -119,6 +120,7 @@ exports.getUserPublicReservations = async (req, res) => {
 
 exports.getMyStats = async (req, res) => {
     try {
+        await reservationService.syncAllReservationStatuses();
         const userId = req.session.userId;
         
         if (!userId) {
@@ -135,6 +137,7 @@ exports.getMyStats = async (req, res) => {
 
 exports.getAvailabilityStats = async (req, res) => {
     try {
+        await reservationService.syncAllReservationStatuses();
         const stats = await reservationService.getAvailabilityStats();
         res.status(200).json(stats);
     } catch (error) {
