@@ -17,15 +17,19 @@ export default function SeatSelector({
   const [selectedSeats, setSelectedSeats] = useState(() => [...initialSelectedSeats]);
   const [hoveredSeat, setHoveredSeat] = useState(null);
 
-  useEffect(() => {
+  const [prevInitialStr, setPrevInitialStr] = useState(initialSelectedSeats.join(","));
+
+  const currentInitialStr = initialSelectedSeats.join(",");
+  if (currentInitialStr !== prevInitialStr) {
+    setPrevInitialStr(currentInitialStr);
     setSelectedSeats([...initialSelectedSeats]);
-  }, [initialSelectedSeats.join(",")]);
+  }
 
   useEffect(() => {
     const fetchOccupancy = async () => {
       if (!selectedSlotId) return;
       try {
-        const response = await fetch(`http://localhost:3001/api/slots/${selectedSlotId}/occupancy?details=true`);
+        const response = await fetch(`${API_BASE_URL}/slots/${selectedSlotId}/occupancy?details=true`);
         const data = await response.json();
         setOccupiedSeats(data.occupiedSeats || []);
         setReservations(data.reservations || []);
