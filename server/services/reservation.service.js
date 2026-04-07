@@ -77,12 +77,13 @@ const resolveReservationStatus = (currentStatus, date, startTime, endTime) => {
     if (currentStatus === "cancelled") return "cancelled";
 
     const now = new Date();
-    const start = new Date(`${date}T${startTime}:00`);
-    const end = new Date(`${date}T${endTime}:00`);
+
+    const start = new Date(`${date}T${startTime}:00+08:00`);
+    const end = new Date(`${date}T${endTime}:00+08:00`);
 
     if (now >= end) return "completed";
     if (now >= start) return "ongoing";
-    
+
     return "active";
 };
 
@@ -146,7 +147,6 @@ exports.getUserReservations = async (userId) => {
 };
 
 exports.getUserStats = async (userId) => {
-    // FIXED: Fetch BOTH active and completed reservations
     const reservations = await Reservation.find({ 
         status: { $in: ["active", "completed"] }, 
         reservedFor: userId 
@@ -169,7 +169,8 @@ exports.getUserStats = async (userId) => {
         const labInfo = slotInfo ? slotInfo.lab : null;
 
         if (slotInfo && slotInfo.date && slotInfo.startTime && slotInfo.endTime) {
-            const reservationDateTime = new Date(`${slotInfo.date}T${slotInfo.startTime}:00`);
+
+            const reservationDateTime = new Date(`${slotInfo.date}T${slotInfo.startTime}:00+08:00`);
 
             if (res.status === "completed") {
                 const [startHour, startMinute] = slotInfo.startTime.split(':').map(Number);
